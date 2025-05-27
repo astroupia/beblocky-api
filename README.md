@@ -142,20 +142,6 @@ The API documentation is available at `/api` when running the server. It provide
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## Testing
-
-We maintain a comprehensive test suite:
-
-```bash
-# Unit tests
-$ pnpm run test
-
-# e2e tests
-$ pnpm run test:e2e
-
-# Test coverage
-$ pnpm run test:cov
-```
 
 ## Deployment
 
@@ -170,11 +156,3 @@ $ docker build -t beblocky-api .
 # Run the container
 $ docker run -p 3000:3000 beblocky-api
 ```
-
-## Support
-
-For support, please contact our team at support@beblocky.com or join our [Discord community](https://discord.gg/beblocky).
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
