@@ -1,0 +1,46 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
+import { LessonService } from '../services/lesson.service';
+import { CreateLessonDto } from '../dto/create-lesson.dto';
+import { Lesson } from '../entities/lesson.entity';
+
+@Controller('lessons')
+export class LessonController {
+  constructor(private readonly lessonService: LessonService) {}
+
+  @Post()
+  create(@Body() createLessonDto: CreateLessonDto): Promise<Lesson> {
+    return this.lessonService.create(createLessonDto);
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string): Promise<Lesson> {
+    return this.lessonService.findById(id);
+  }
+
+  @Get()
+  findByCourse(@Query('courseId') courseId: string): Promise<Lesson[]> {
+    return this.lessonService.findByCourseId(courseId);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() updateLessonDto: Partial<Lesson>,
+  ): Promise<Lesson> {
+    return this.lessonService.update(id, updateLessonDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string): Promise<void> {
+    return this.lessonService.delete(id);
+  }
+}
