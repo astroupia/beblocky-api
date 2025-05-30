@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
-import { createCheckoutSession } from 'arifpay-express';
 import { BadRequestException } from '@nestjs/common';
+
 @Injectable()
 export class PaymentService {
   /**
@@ -24,6 +24,7 @@ export class PaymentService {
    */
   async createPayment(createPaymentDto: CreatePaymentDto): Promise<any> {
     try {
+      const { createCheckoutSession } = await import('arifpay-express');
       const result = await createCheckoutSession({
         cancelUrl: process.env.CANCEL_URL,
         successUrl: process.env.SUCCESS_URL,
