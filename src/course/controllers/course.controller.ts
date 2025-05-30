@@ -6,9 +6,11 @@ import {
   Patch,
   Param,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { CourseService } from '../services/course.service';
 import { CreateCourseDto } from '../dto/create-course.dto';
+import { CreateCourseWithContentDto } from '../dto/create-course-with-content.dto';
 import { Course } from '../entities/course.entity';
 
 @Controller('courses')
@@ -20,9 +22,11 @@ export class CourseController {
     return this.courseService.create(createCourseDto);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string): Promise<Course> {
-    return this.courseService.findById(id);
+  @Post('with-content')
+  createWithContent(
+    @Body() createCourseWithContentDto: CreateCourseWithContentDto,
+  ) {
+    return this.courseService.createWithContent(createCourseWithContentDto);
   }
 
   @Get()
@@ -30,7 +34,12 @@ export class CourseController {
     return this.courseService.findAll();
   }
 
-  @Patch(':id')
+  @Get(':id')
+  findOne(@Param('id') id: string): Promise<Course> {
+    return this.courseService.findById(id);
+  }
+
+  @Put(':id')
   update(
     @Param('id') id: string,
     @Body() updateCourseDto: Partial<Course>,
