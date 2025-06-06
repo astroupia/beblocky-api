@@ -85,9 +85,7 @@ export class PaymentService {
         phone: createPaymentDto.phone,
         items: createPaymentDto.items,
         email: createPaymentDto.email,
-        beneficiaries: [
-          { accountNumber: '01320811436100', bank: 'AWINETAA', amount: 2 },
-        ],
+        beneficiaries: this.getPaymentBeneficiaries(),
         cancelUrl: createPaymentDto.cancelUrl,
         successUrl: createPaymentDto.successUrl,
         errorUrl: createPaymentDto.errorUrl,
