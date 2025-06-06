@@ -1,14 +1,30 @@
-import { IsString, IsNotEmpty, IsOptional, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsArray,
+  IsEnum,
+  IsNumber,
+  Min,
+} from 'class-validator';
 import { Types } from 'mongoose';
+import {
+  CourseSubscriptionType,
+  CourseStatus,
+} from '../entities/course.entity';
 
 export class CreateCourseDto {
   @IsString()
   @IsNotEmpty()
-  title: string;
+  courseTitle: string;
 
   @IsString()
-  @IsOptional()
-  description: string;
+  @IsNotEmpty()
+  courseDescription: string;
+
+  @IsString()
+  @IsNotEmpty()
+  courseLanguage: string;
 
   @IsArray()
   @IsOptional()
@@ -17,4 +33,25 @@ export class CreateCourseDto {
   @IsArray()
   @IsOptional()
   slideIds?: Types.ObjectId[];
+
+  @IsArray()
+  @IsOptional()
+  organization?: Types.ObjectId[];
+
+  @IsEnum(CourseSubscriptionType)
+  @IsOptional()
+  subType?: CourseSubscriptionType;
+
+  @IsEnum(CourseStatus)
+  @IsOptional()
+  status?: CourseStatus;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  rating?: number;
+
+  @IsString()
+  @IsOptional()
+  language?: string;
 }

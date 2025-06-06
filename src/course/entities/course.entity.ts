@@ -2,10 +2,11 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
 export enum CourseSubscriptionType {
-  FREE = 'Free',
-  STANDARD = 'Standard',
-  PREMIUM = 'Premium',
-  GOLD = 'Gold',
+  FREE = 'active',
+  STARTER = 'starter',
+  BUILDER = 'builder',
+  PRO = 'pro-bundle',
+  ORGANIZATION = 'organization',
 }
 
 export enum CourseStatus {
@@ -24,6 +25,7 @@ export class Course {
   subType: CourseSubscriptionType;
   status: CourseStatus;
   rating: number;
+  school: Types.ObjectId;
   language: string;
 }
 
@@ -47,6 +49,9 @@ export class CourseSchemaClass {
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Student' }] })
   students: Types.ObjectId[];
+
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Organization' }] })
+  organization: Types.ObjectId[];
 
   @Prop({
     type: String,

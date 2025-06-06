@@ -4,8 +4,15 @@ import {
   IsOptional,
   IsArray,
   ValidateNested,
+  IsEnum,
+  IsNumber,
+  Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import {
+  CourseSubscriptionType,
+  CourseStatus,
+} from '../entities/course.entity';
 
 export class CreateLessonDto {
   @IsString()
@@ -33,11 +40,15 @@ export class CreateSlideDto {
 export class CreateCourseWithContentDto {
   @IsString()
   @IsNotEmpty()
-  title: string;
+  courseTitle: string;
 
   @IsString()
-  @IsOptional()
-  description?: string;
+  @IsNotEmpty()
+  courseDescription: string;
+
+  @IsString()
+  @IsNotEmpty()
+  courseLanguage: string;
 
   @IsArray()
   @ValidateNested({ each: true })
@@ -50,4 +61,21 @@ export class CreateCourseWithContentDto {
   @Type(() => CreateSlideDto)
   @IsOptional()
   slides?: CreateSlideDto[];
+
+  @IsEnum(CourseSubscriptionType)
+  @IsOptional()
+  subType?: CourseSubscriptionType;
+
+  @IsEnum(CourseStatus)
+  @IsOptional()
+  status?: CourseStatus;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  rating?: number;
+
+  @IsString()
+  @IsOptional()
+  language?: string;
 }
