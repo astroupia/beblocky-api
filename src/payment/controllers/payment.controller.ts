@@ -2,6 +2,7 @@ import { Body, Controller, Post } from '@nestjs/common';
 import { PaymentService } from '../services/payment.service';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { ValidationPipe } from '@nestjs/common';
+
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
@@ -12,4 +13,7 @@ export class PaymentController {
   ) {
     return this.paymentService.createPayment(createPaymentDto);
   }
+
+
+  
 }

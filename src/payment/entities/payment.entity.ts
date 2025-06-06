@@ -1,67 +1,86 @@
-import { SchemaFactory, Schema, Prop } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import {
-  PaymentStatus,
   PaymentMethod,
+  PaymentStatus,
 } from '../../common/payment-provider.enums';
 
-export class Payment {
-  userId: Types.ObjectId;
-  amount: number;
-  status: PaymentStatus;
-  paymentMethod: PaymentMethod;
-  TransactionId?: string;
-  nonce?: string;
-  phoneNumber?: string;
-  email?: string;
-  itemDescription?: [{}];
-  expireDate?: Date;
-  sessionId?: string;
+@Schema({ _id: false })
+class Item {
+  @Prop({ required: true })
+  name: string;
+
+  @Prop({ required: true })
+  quantity: number;
+
+  @Prop({ required: true })
+  price: number;
+
+  @Prop()
+  description?: string;
+
+  @Prop()
+  image?: string;
 }
 
 @Schema({ timestamps: true })
-export class PaymentSchemaClass {
+export class Payment {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
   @Prop({ required: true })
   amount: number;
 
+  @Prop({ required: true })
+  cancelUrl: string;
+
+  @Prop({ required: true })
+  successUrl: string;
+
+  @Prop({ required: true })
+  errorUrl: string;
+
+  @Prop({ required: true })
+  notifyUrl: string;
+
+  @Prop()
+  phone?: string;
+
+  @Prop()
+  email?: string;
+
+  @Prop({ unique: true, sparse: true })
+  nonce?: string;
+
+  @Prop({
+    type: [String],
+    enum: Object.values(PaymentMethod),
+    required: true,
+  })
+  paymentMethods: PaymentMethod[];
+
+  @Prop({ type: Date, required: true })
+  expireDate: Date;
+
+  @Prop({ type: [Item], required: true })
+  items: Item[];
+
+  @Prop()
+  lang?: string;
+
   @Prop({
     type: String,
     enum: Object.values(PaymentStatus),
     default: PaymentStatus.PENDING,
   })
-  status: PaymentStatus;
-
-  @Prop({
-    type: String,
-    enum: Object.values(PaymentMethod),
-    required: true,
-  })
-  paymentMethod: PaymentMethod;
+  transactionStatus?: PaymentStatus;
 
   @Prop({ type: String, unique: true, sparse: true })
-  TransactionId: string;
+  transactionId?: string | null;
 
   @Prop({ type: String, unique: true, sparse: true })
-  nonce: string;
-
-  @Prop({ type: String })
-  phoneNumber: string;
-
-  @Prop({ type: String })
-  email: string;
-
-  @Prop({ type: [{}] })
-  itemDescription: [{}];
-
-  @Prop({ type: Date })
-  expireDate: Date;
-
-  @Prop({ type: String, unique: true, sparse: true })
-  sessionId: string;
+  sessionId?: string | null;
 }
 
-export const PaymentSchema = SchemaFactory.createForClass(PaymentSchemaClass);
-export type PaymentDocument = PaymentSchemaClass & Document;
+export const PaymentSchema = SchemaFactory.createForClass(Payment);
+export type PaymentDocument = Payment & Document;
