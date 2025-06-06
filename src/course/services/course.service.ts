@@ -1,7 +1,7 @@
 import { Injectable, forwardRef, Inject } from '@nestjs/common';
 import { CourseRepository } from '../repositories/course.repository';
-import { CreateCourseDto } from '../dto/create-course.dto';
-import { CreateCourseWithContentDto } from '../dto/create-course-with-content.dto';
+import { CreateCourseDto } from '../dtos/create-course.dto';
+import { CreateCourseWithContentDto } from '../dtos/create-course-with-content.dto';
 import { Course, CourseDocument } from '../entities/course.entity';
 import { LessonService } from '../../lesson/services/lesson.service';
 import { SlideService } from '../../slide/services/slide.service';

@@ -6,7 +6,7 @@ import {
   CourseDocument,
   CourseSchemaClass,
 } from '../entities/course.entity';
-import { CreateCourseDto } from '../dto/create-course.dto';
+import { CreateCourseDto } from '../dtos/create-course.dto';
 
 @Injectable()
 export class CourseRepository {

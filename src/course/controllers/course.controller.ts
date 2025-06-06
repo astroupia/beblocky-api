@@ -9,8 +9,8 @@ import {
   Put,
 } from '@nestjs/common';
 import { CourseService } from '../services/course.service';
-import { CreateCourseDto } from '../dto/create-course.dto';
-import { CreateCourseWithContentDto } from '../dto/create-course-with-content.dto';
+import { CreateCourseDto } from '../dtos/create-course.dto';
+import { CreateCourseWithContentDto } from '../dtos/create-course-with-content.dto';
 import { Course } from '../entities/course.entity';
 
 @Controller('courses')
