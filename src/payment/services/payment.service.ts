@@ -6,6 +6,8 @@ import { CheckoutSessionResponse } from '../types/payment-response-types';
 import { ConfigService } from '@nestjs/config';
 import { Types } from 'mongoose';
 import { PaymentStatus } from 'src/common/payment-provider.enums';
+import { ResponseStatusDto } from '../dto/response-status.dto';
+import { log } from 'console';
 
 @Injectable()
 export class PaymentService {
@@ -133,6 +135,35 @@ export class PaymentService {
       throw new BadRequestException({
         message: 'Failed to create payment session',
         error: error || 'Unknown error',
+      });
+    }
+  }
+
+  async getResponseStatus(
+    responseStatusDto: Partial<ResponseStatusDto>,
+  ): Promise<any> {
+    try {
+      const { sessionId, phone, transactionStatus } = responseStatusDto;
+
+      if (transactionStatus === PaymentStatus.SUCCESS) {
+        const updatedPayment = await this.paymentRepository.updatePaymentStatus(
+          {
+            sessionId,
+            phone,
+            transactionStatus: PaymentStatus.SUCCESS,
+            transaction: responseStatusDto.transaction,
+          },
+        );
+
+        return updatedPayment;
+      }
+
+      // Gracefully handle non-success status
+      return { message: 'Transaction not successful or no action required' };
+    } catch (error) {
+      throw new BadRequestException({
+        message: 'Failed to process transaction status',
+        error: error,
       });
     }
   }

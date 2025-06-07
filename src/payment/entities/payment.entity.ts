@@ -44,7 +44,7 @@ export class Payment {
   notifyUrl: string;
 
   @Prop()
-  phone?: string;
+  phone?: number;
 
   @Prop()
   email?: string;

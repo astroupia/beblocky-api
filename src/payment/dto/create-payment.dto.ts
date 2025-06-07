@@ -54,9 +54,9 @@ export class CreatePaymentDto {
   @IsString()
   notifyUrl: string;
 
-  @IsString()
+  @IsNumber()
   @IsOptional()
-  phone?: string;
+  phone?: number;
 
   @IsEmail()
   @IsOptional()
@@ -68,7 +68,7 @@ export class CreatePaymentDto {
 
   @IsArray()
   @IsEnum(PaymentMethod, { each: true })
-  paymentMethods: PaymentMethod[];
+  paymentMethods?: PaymentMethod[];
 
   @IsDateString()
   expireDate: Date;
