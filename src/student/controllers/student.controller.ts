@@ -1,0 +1,65 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
+import { StudentService } from '../services/student.service';
+import { CreateStudentDto } from '../dtos/create-student.dto';
+import { UpdateStudentDto } from '../dtos/update-student.dto';
+
+@Controller('students')
+export class StudentController {
+  constructor(private readonly studentService: StudentService) {}
+
+  @Post()
+  create(@Body() createStudentDto: CreateStudentDto) {
+    return this.studentService.create(createStudentDto);
+  }
+
+  @Get()
+  findAll() {
+    return this.studentService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.studentService.findOne(id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateStudentDto: UpdateStudentDto) {
+    return this.studentService.update(id, updateStudentDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.studentService.remove(id);
+  }
+
+  @Post(':id/enroll/:courseId')
+  enrollInCourse(@Param('id') id: string, @Param('courseId') courseId: string) {
+    return this.studentService.enrollInCourse(id, courseId);
+  }
+
+  @Post(':id/unenroll/:courseId')
+  unenrollFromCourse(
+    @Param('id') id: string,
+    @Param('courseId') courseId: string,
+  ) {
+    return this.studentService.unenrollFromCourse(id, courseId);
+  }
+
+  @Post(':id/coins')
+  addCoins(@Param('id') id: string, @Body('amount') amount: number) {
+    return this.studentService.addCoins(id, amount);
+  }
+
+  @Post(':id/goals')
+  addGoal(@Param('id') id: string, @Body('goal') goal: string) {
+    return this.studentService.addGoal(id, goal);
+  }
+}
