@@ -9,20 +9,21 @@ import {
   Query,
 } from '@nestjs/common';
 import { SlideService } from '../services/slide.service';
-import { CreateSlideDto } from '../dto/create-slide.dto';
-import { Slide } from '../entities/slide.entity';
+import { CreateSlideDto } from '../dtos/create-slide.dto';
+import { UpdateSlideDto } from '../dtos/update-slide.dto';
+import { SlideDocument } from '../entities/slide.entity';
 
 @Controller('slides')
 export class SlideController {
   constructor(private readonly slideService: SlideService) {}
 
   @Post()
-  create(@Body() createSlideDto: CreateSlideDto): Promise<Slide> {
+  create(@Body() createSlideDto: CreateSlideDto): Promise<SlideDocument> {
     return this.slideService.create(createSlideDto);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Slide> {
+  findOne(@Param('id') id: string): Promise<SlideDocument> {
     return this.slideService.findById(id);
   }
 
@@ -30,7 +31,7 @@ export class SlideController {
   findByCourseOrLesson(
     @Query('courseId') courseId?: string,
     @Query('lessonId') lessonId?: string,
-  ): Promise<Slide[]> {
+  ): Promise<SlideDocument[]> {
     if (courseId) {
       return this.slideService.findByCourseId(courseId);
     }
@@ -45,8 +46,8 @@ export class SlideController {
   @Patch(':id')
   update(
     @Param('id') id: string,
-    @Body() updateSlideDto: Partial<Slide>,
-  ): Promise<Slide> {
+    @Body() updateSlideDto: UpdateSlideDto,
+  ): Promise<SlideDocument> {
     return this.slideService.update(id, updateSlideDto);
   }
 

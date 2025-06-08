@@ -1,17 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import {
-  Course,
-  CourseDocument,
-  CourseSchemaClass,
-} from '../entities/course.entity';
-import { CreateCourseDto } from '../dto/create-course.dto';
+import { Course, CourseDocument } from '../entities/course.entity';
+import { CreateCourseDto } from '../dtos/create-course.dto';
 
 @Injectable()
 export class CourseRepository {
   constructor(
-    @InjectModel(CourseSchemaClass.name)
+    @InjectModel('Course')
     private readonly courseModel: Model<CourseDocument>,
   ) {}
 
@@ -70,5 +66,26 @@ export class CourseRepository {
       .populate('lessons')
       .populate('slides')
       .exec();
+  }
+
+  async findByIdAndUpdate(
+    id: string,
+    updateData: Partial<Course>,
+  ): Promise<CourseDocument> {
+    const course = await this.courseModel
+      .findByIdAndUpdate(id, updateData, { new: true })
+      .exec();
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${id} not found`);
+    }
+    return course;
+  }
+
+  async findByIdAndDelete(id: string): Promise<CourseDocument> {
+    const course = await this.courseModel.findByIdAndDelete(id).exec();
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${id} not found`);
+    }
+    return course;
   }
 }
