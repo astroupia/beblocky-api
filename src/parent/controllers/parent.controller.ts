@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  Query,
 } from '@nestjs/common';
 import { ParentService } from '../services/parent.service';
 import { CreateParentDto } from '../dtos/create-parent.dto';

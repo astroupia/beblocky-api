@@ -1,20 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UserRepository } from '../repositories/user.repository';
+import { User } from '../entities/user.entity';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
-import { User } from '../entities/user.schema';
-import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    return this.userRepository.create({
-      ...createUserDto,
-      password: hashedPassword,
-    });
+    return this.userRepository.create(createUserDto);
   }
 
   async findAll(): Promise<User[]> {
@@ -38,9 +33,6 @@ export class UserService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
-    }
     const user = await this.userRepository.findByIdAndUpdate(id, updateUserDto);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
