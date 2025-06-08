@@ -6,7 +6,7 @@ import {
   SlideDocument,
   SlideSchemaClass,
 } from '../entities/slide.entity';
-import { CreateSlideDto } from '../dto/create-slide.dto';
+import { CreateSlideDto } from '../dtos/create-slide.dto';
 
 @Injectable()
 export class SlideRepository {
@@ -21,7 +21,6 @@ export class SlideRepository {
       content: createSlideDto.content,
       course: createSlideDto.courseId,
       lesson: createSlideDto.lessonId,
-      order: createSlideDto.order || 0,
     });
     return await slide.save();
   }
