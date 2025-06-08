@@ -1,17 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import {
-  Lesson,
-  LessonDocument,
-  LessonSchemaClass,
-} from '../entities/lesson.entity';
+import { Lesson, LessonDocument } from '../entities/lesson.entity';
 import { CreateLessonDto } from '../dtos/create-lesson.dto';
 
 @Injectable()
 export class LessonRepository {
   constructor(
-    @InjectModel(LessonSchemaClass.name)
+    @InjectModel('Lesson')
     private readonly lessonModel: Model<LessonDocument>,
   ) {}
 
@@ -20,7 +16,7 @@ export class LessonRepository {
       title: createLessonDto.title,
       description: createLessonDto.description,
       course: createLessonDto.courseId,
-      slides: createLessonDto.slideIds || [],
+      slides: createLessonDto.slides || [],
     });
     return await lesson.save();
   }

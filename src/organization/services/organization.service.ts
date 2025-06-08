@@ -10,10 +10,41 @@ export class OrganizationService {
     private readonly organizationRepository: OrganizationRepository,
   ) {}
 
+  private mapDtoToEntity(
+    dto: CreateOrganizationDto | UpdateOrganizationDto,
+  ): Partial<OrganizationDocument> {
+    const { settings, ...restDto } = dto;
+    const mappedDto: Partial<OrganizationDocument> = {
+      ...restDto,
+      features: dto.features
+        ? {
+            hasStudentTracking: dto.features.hasStudentTracking ?? false,
+            hasProgressTracking: dto.features.hasProgressTracking ?? false,
+            hasLeaderboard: dto.features.hasLeaderboard ?? false,
+          }
+        : undefined,
+    };
+
+    // Only add settings if they exist and have required fields
+    if (settings?.academicYear?.startDate && settings?.academicYear?.endDate) {
+      mappedDto.settings = {
+        timezone: settings.timezone ?? 'UTC',
+        language: settings.language ?? 'en',
+        academicYear: {
+          startDate: settings.academicYear.startDate,
+          endDate: settings.academicYear.endDate,
+        },
+      };
+    }
+
+    return mappedDto;
+  }
+
   async create(
     createOrganizationDto: CreateOrganizationDto,
   ): Promise<OrganizationDocument> {
-    return this.organizationRepository.create(createOrganizationDto);
+    const entity = this.mapDtoToEntity(createOrganizationDto);
+    return this.organizationRepository.create(entity);
   }
 
   async findById(id: string): Promise<OrganizationDocument> {
@@ -28,7 +59,8 @@ export class OrganizationService {
     id: string,
     updateOrganizationDto: UpdateOrganizationDto,
   ): Promise<OrganizationDocument> {
-    return this.organizationRepository.update(id, updateOrganizationDto);
+    const entity = this.mapDtoToEntity(updateOrganizationDto);
+    return this.organizationRepository.update(id, entity);
   }
 
   async delete(id: string): Promise<void> {

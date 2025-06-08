@@ -2,11 +2,9 @@ import {
   IsString,
   IsNotEmpty,
   IsOptional,
-  IsEnum,
   IsNumber,
-  Min,
+  IsEnum,
   IsArray,
-  IsMongoId,
 } from 'class-validator';
 import { Types } from 'mongoose';
 import { LessonDifficulty } from '../entities/lesson.entity';
@@ -20,12 +18,18 @@ export class CreateLessonDto {
   @IsOptional()
   description?: string;
 
+  @IsNotEmpty()
+  courseId: Types.ObjectId;
+
+  @IsArray()
+  @IsOptional()
+  slides?: Types.ObjectId[];
+
   @IsEnum(LessonDifficulty)
   @IsOptional()
-  difficulty?: LessonDifficulty;
+  difficulty?: LessonDifficulty = LessonDifficulty.BEGINNER;
 
   @IsNumber()
-  @Min(0)
   @IsNotEmpty()
   duration: number;
 
@@ -33,18 +37,4 @@ export class CreateLessonDto {
   @IsString({ each: true })
   @IsOptional()
   tags?: string[];
-
-  @IsOptional()
-  course?: Types.ObjectId;
-
-  @IsOptional()
-  slides?: Types.ObjectId[];
-
-  @IsMongoId()
-  @IsNotEmpty()
-  courseId: Types.ObjectId;
-
-  @IsArray()
-  @IsOptional()
-  slideIds?: Types.ObjectId[];
 }

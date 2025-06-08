@@ -42,7 +42,7 @@ class ContactInfoDto {
 
   @IsUrl()
   @IsOptional()
-  website?: string;
+  website: string;
 
   @IsEmail()
   @IsNotEmpty()
@@ -105,12 +105,12 @@ export class CreateOrganizationDto {
   @ValidateNested()
   @Type(() => ContactInfoDto)
   @IsNotEmpty()
-  contactInfo: ContactInfoDto;
+  contactInfo?: ContactInfoDto;
 
   @ValidateNested()
   @Type(() => FeaturesDto)
   @IsOptional()
-  features?: FeaturesDto;
+  features: FeaturesDto;
 
   @ValidateNested()
   @Type(() => SettingsDto)

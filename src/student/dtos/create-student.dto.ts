@@ -11,6 +11,7 @@ import {
 import { Type } from 'class-transformer';
 import { CreateUserDto } from '../../user/dtos/create-user.dto';
 import { Gender } from '../entities/student.entity';
+import { Types } from 'mongoose';
 
 export class EmergencyContactDto {
   @IsString()
@@ -42,15 +43,15 @@ export class CreateStudentDto extends CreateUserDto {
 
   @IsMongoId()
   @IsOptional()
-  schoolId?: string;
+  schoolId?: Types.ObjectId;
 
   @IsMongoId()
   @IsOptional()
-  parentId?: string;
+  parentId?: Types.ObjectId;
 
   @IsMongoId({ each: true })
   @IsOptional()
-  enrolledCourses?: string[];
+  enrolledCourses?: Types.ObjectId[];
 
   @IsNumber()
   @IsOptional()
@@ -68,4 +69,8 @@ export class CreateStudentDto extends CreateUserDto {
   @IsOptional()
   @Type(() => EmergencyContactDto)
   emergencyContact?: EmergencyContactDto;
+
+  @IsString()
+  @IsOptional()
+  section?: string;
 }

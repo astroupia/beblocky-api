@@ -1,8 +1,8 @@
-import { Injectable, forwardRef, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CourseRepository } from '../repositories/course.repository';
+import { Course, CourseDocument } from '../entities/course.entity';
 import { CreateCourseDto } from '../dtos/create-course.dto';
 import { CreateCourseWithContentDto } from '../dtos/create-course-with-content.dto';
-import { Course, CourseDocument } from '../entities/course.entity';
 import { LessonService } from '../../lesson/services/lesson.service';
 import { SlideService } from '../../slide/services/slide.service';
 import { Types } from 'mongoose';
@@ -11,9 +11,7 @@ import { Types } from 'mongoose';
 export class CourseService {
   constructor(
     private readonly courseRepository: CourseRepository,
-    @Inject(forwardRef(() => LessonService))
     private readonly lessonService: LessonService,
-    @Inject(forwardRef(() => SlideService))
     private readonly slideService: SlideService,
   ) {}
 
@@ -24,77 +22,83 @@ export class CourseService {
   async createWithContent(
     createCourseWithContentDto: CreateCourseWithContentDto,
   ): Promise<CourseDocument> {
-    // First create the course
+    // Create the course first
     const course = await this.courseRepository.create({
       title: createCourseWithContentDto.title,
       description: createCourseWithContentDto.description || '',
+      courseLanguage: createCourseWithContentDto.courseLanguage,
     });
 
-    const lessonIds: Types.ObjectId[] = [];
-    const slideIds: Types.ObjectId[] = [];
-
-    // Create lessons if provided
+    // Create lessons and their slides if provided
     if (createCourseWithContentDto.lessons?.length) {
       for (const lessonDto of createCourseWithContentDto.lessons) {
         const lesson = await this.lessonService.create({
-          ...lessonDto,
           courseId: course._id as Types.ObjectId,
+          title: lessonDto.title,
+          description: lessonDto.description,
+          duration: lessonDto.duration,
         });
-        if (lesson._id) {
-          lessonIds.push(lesson._id as Types.ObjectId);
+
+        // Create slides for this lesson if provided
+        if (createCourseWithContentDto.slides?.length) {
+          for (const slideDto of createCourseWithContentDto.slides) {
+            await this.slideService.create({
+              courseId: course._id as Types.ObjectId,
+              lessonId: lesson._id as Types.ObjectId,
+              title: slideDto.title,
+              content: slideDto.content,
+              order: slideDto.order,
+              titleFont: slideDto.titleFont,
+              contentFont: slideDto.contentFont,
+              backgroundColor: slideDto.backgroundColor,
+              textColor: slideDto.textColor,
+              imageUrl: slideDto.imageUrl,
+              videoUrl: slideDto.videoUrl,
+              themeColors: slideDto.themeColors
+                ? {
+                    main: slideDto.themeColors.main,
+                    secondary: slideDto.themeColors.secondary,
+                    accent: slideDto.themeColors.accent,
+                  }
+                : undefined,
+            });
+          }
         }
       }
     }
-
-    // Create slides if provided
-    if (createCourseWithContentDto.slides?.length) {
-      for (const slideDto of createCourseWithContentDto.slides) {
-        const slide = await this.slideService.create({
-          ...slideDto,
-          courseId: course._id as Types.ObjectId,
-        });
-        if (slide._id) {
-          slideIds.push(slide._id as Types.ObjectId);
-        }
-      }
-    }
-
-    // Update course with created lesson and slide IDs
-    const courseId = (course._id as Types.ObjectId).toString();
-    return this.update(courseId, {
-      lessons: lessonIds,
-      slides: slideIds,
-    });
-  }
-
-  async findById(id: string): Promise<CourseDocument> {
-    return this.courseRepository.findById(id);
-  }
-
-  async update(
-    id: string,
-    updateData: Partial<Course>,
-  ): Promise<CourseDocument> {
-    return this.courseRepository.update(id, updateData);
-  }
-
-  async delete(id: string): Promise<void> {
-    const course = await this.findById(id);
-
-    // Cascade delete lessons
-    for (const lessonId of course.lessons) {
-      await this.lessonService.delete(lessonId.toString());
-    }
-
-    // Cascade delete slides
-    for (const slideId of course.slides) {
-      await this.slideService.delete(slideId.toString());
-    }
-
-    await this.courseRepository.delete(id);
+    return this.courseRepository.findById(course._id as string);
   }
 
   async findAll(): Promise<CourseDocument[]> {
     return this.courseRepository.findAll();
+  }
+
+  async findById(id: string): Promise<CourseDocument> {
+    const course = await this.courseRepository.findById(id);
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${id} not found`);
+    }
+    return course;
+  }
+
+  async update(
+    id: string,
+    updateCourseDto: Partial<Course>,
+  ): Promise<CourseDocument> {
+    const course = await this.courseRepository.findByIdAndUpdate(
+      id,
+      updateCourseDto,
+    );
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${id} not found`);
+    }
+    return course;
+  }
+
+  async delete(id: string): Promise<void> {
+    const course = await this.courseRepository.findByIdAndDelete(id);
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${id} not found`);
+    }
   }
 }

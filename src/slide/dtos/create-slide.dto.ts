@@ -3,23 +3,12 @@ import {
   IsNotEmpty,
   IsOptional,
   IsArray,
-  IsHexColor,
   ValidateNested,
+  IsNumber,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Types } from 'mongoose';
-
-class ThemeColorsDto {
-  @IsString()
-  @IsHexColor()
-  @IsNotEmpty()
-  main: string;
-
-  @IsString()
-  @IsHexColor()
-  @IsNotEmpty()
-  secondary: string;
-}
+import { ThemeColorsDto } from '../../shared/dtos/theme-colors.dto';
 
 export class CreateSlideDto {
   @IsString()
@@ -30,15 +19,17 @@ export class CreateSlideDto {
   @IsOptional()
   content?: string;
 
-  @IsString()
-  @IsNotEmpty()
+  @IsNumber()
   @IsOptional()
-  titleFont: string;
+  order?: number;
 
   @IsString()
-  @IsNotEmpty()
   @IsOptional()
-  contentFont: string;
+  titleFont?: string;
+
+  @IsString()
+  @IsOptional()
+  contentFont?: string;
 
   @IsString()
   @IsOptional()
@@ -54,23 +45,29 @@ export class CreateSlideDto {
   imageUrls?: string[];
 
   @IsString()
-  @IsHexColor()
-  @IsNotEmpty()
   @IsOptional()
-  backgroundColor: string;
+  backgroundColor?: string;
 
   @IsString()
-  @IsHexColor()
-  @IsNotEmpty()
-  textColor: string;
+  @IsOptional()
+  textColor?: string;
 
   @ValidateNested()
   @Type(() => ThemeColorsDto)
-  @IsNotEmpty()
   @IsOptional()
-  themeColors: ThemeColorsDto;
+  themeColors?: ThemeColorsDto;
 
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  videoUrl?: string;
+
+  @IsNotEmpty()
   courseId: Types.ObjectId;
 
+  @IsNotEmpty()
   lessonId: Types.ObjectId;
 }

@@ -28,7 +28,7 @@ export class Organization {
   };
   contactInfo: {
     phone: string;
-    website: string;
+    website?: string;
     email: string;
   };
   teachers: Types.ObjectId[];
@@ -37,9 +37,9 @@ export class Organization {
   subscription: Types.ObjectId;
   paymentHistory: Types.ObjectId[];
   features: {
-    hasStudentTracking: boolean;
-    hasProgressTracking: boolean;
-    hasLeaderboard: boolean;
+    hasStudentTracking?: boolean;
+    hasProgressTracking?: boolean;
+    hasLeaderboard?: boolean;
   };
   settings: {
     timezone: string;

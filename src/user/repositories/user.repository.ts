@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User, UserDocument, UserSchemaClass } from '../entities/user.entity';
+import { User, UserDocument } from '../entities/user.entity';
 
 @Injectable()
 export class UserRepository {
   constructor(
-    @InjectModel(UserSchemaClass.name)
+    @InjectModel('User')
     private readonly userModel: Model<UserDocument>,
   ) {}
 

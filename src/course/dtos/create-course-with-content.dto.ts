@@ -9,10 +9,18 @@ import {
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { Types } from 'mongoose';
 import {
   CourseSubscriptionType,
   CourseStatus,
 } from '../entities/course.entity';
+import { ThemeColorsDto } from '../../shared/dtos/theme-colors.dto';
+
+export enum LessonDifficulty {
+  BEGINNER = 'beginner',
+  INTERMEDIATE = 'intermediate',
+  ADVANCED = 'advanced',
+}
 
 export class CreateLessonDto {
   @IsString()
@@ -22,6 +30,26 @@ export class CreateLessonDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @IsNotEmpty()
+  courseId: Types.ObjectId;
+
+  @IsArray()
+  @IsOptional()
+  slides?: Types.ObjectId[];
+
+  @IsEnum(LessonDifficulty)
+  @IsOptional()
+  difficulty?: LessonDifficulty = LessonDifficulty.BEGINNER;
+
+  @IsNumber()
+  @IsNotEmpty()
+  duration: number;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  tags?: string[];
 }
 
 export class CreateSlideDto {
@@ -33,11 +61,68 @@ export class CreateSlideDto {
   @IsOptional()
   content?: string;
 
+  @IsNumber()
   @IsOptional()
   order?: number;
+
+  @IsString()
+  @IsOptional()
+  titleFont?: string;
+
+  @IsString()
+  @IsOptional()
+  contentFont?: string;
+
+  @IsString()
+  @IsOptional()
+  startingCode?: string;
+
+  @IsString()
+  @IsOptional()
+  solutionCode?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  imageUrls?: string[];
+
+  @IsString()
+  @IsOptional()
+  backgroundColor?: string;
+
+  @IsString()
+  @IsOptional()
+  textColor?: string;
+
+  @ValidateNested()
+  @Type(() => ThemeColorsDto)
+  @IsOptional()
+  themeColors?: ThemeColorsDto;
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
+
+  @IsString()
+  @IsOptional()
+  videoUrl?: string;
+
+  @IsNotEmpty()
+  courseId: Types.ObjectId;
+
+  @IsNotEmpty()
+  lessonId: Types.ObjectId;
 }
 
 export class CreateCourseWithContentDto {
+  @IsString()
+  @IsNotEmpty()
+  title: string;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
   @IsString()
   @IsNotEmpty()
   courseTitle: string;

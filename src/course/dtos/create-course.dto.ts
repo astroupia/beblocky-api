@@ -16,11 +16,11 @@ import {
 export class CreateCourseDto {
   @IsString()
   @IsNotEmpty()
-  courseTitle: string;
+  title: string;
 
   @IsString()
-  @IsNotEmpty()
-  courseDescription: string;
+  @IsOptional()
+  description?: string;
 
   @IsString()
   @IsNotEmpty()
