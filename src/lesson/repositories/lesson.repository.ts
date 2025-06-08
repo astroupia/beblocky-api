@@ -6,7 +6,7 @@ import {
   LessonDocument,
   LessonSchemaClass,
 } from '../entities/lesson.entity';
-import { CreateLessonDto } from '../dto/create-lesson.dto';
+import { CreateLessonDto } from '../dtos/create-lesson.dto';
 
 @Injectable()
 export class LessonRepository {

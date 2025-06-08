@@ -1,6 +1,6 @@
 import { Injectable, forwardRef, Inject } from '@nestjs/common';
 import { LessonRepository } from '../repositories/lesson.repository';
-import { CreateLessonDto } from '../dto/create-lesson.dto';
+import { CreateLessonDto } from '../dtos/create-lesson.dto';
 import { Lesson, LessonDocument } from '../entities/lesson.entity';
 import { CourseService } from '../../course/services/course.service';
 import { SlideService } from '../../slide/services/slide.service';
