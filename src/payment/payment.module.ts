@@ -14,3 +14,4 @@ import { ConfigModule } from '@nestjs/config';
   exports: [PaymentRepository],
 })
 export class PaymentModule {}
+``

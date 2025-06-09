@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
-import { BadRequestException } from '@nestjs/common';
 import { PaymentRepository } from '../repositories/payment.repository';
 import { CheckoutSessionResponse } from '../types/payment-response-types';
 import { ConfigService } from '@nestjs/config';
 import { Types } from 'mongoose';
 import { PaymentStatus } from 'src/common/payment-provider.enums';
 import { ResponseStatusDto } from '../dto/response-status.dto';
-import { log } from 'console';
+import { PaymentDocument } from '../entities/payment.entity';
+import { paymentLogger } from 'src/utils/logger';
 
 @Injectable()
 export class PaymentService {
@@ -16,87 +16,35 @@ export class PaymentService {
     private readonly configService: ConfigService,
   ) {}
 
-  /**
-   * Wraps a promise in a timeout.
-   *
-   * @param fn - The function that returns a promise.
-   * @param timeoutMs - The timeout in milliseconds.
-   *
-   * @returns {Promise<T>} - The promise.
-   */
   async tryWithTimeout<T>(fn: () => Promise<T>, timeoutMs: number): Promise<T> {
     return Promise.race([
       fn(),
-      // If the promise takes longer than the timeout, reject it
       new Promise<T>((_, reject) =>
         setTimeout(() => reject(new Error('Operation timed out')), timeoutMs),
       ),
     ]);
   }
 
-  /**
-   * Retrieves the payment beneficiaries from the environment configuration.
-   *
-   * @returns {string} - An object representing the payment beneficiaries.
-   *
-   * @throws {Error} - If the environment variable is not set or the JSON parsing fails.
-   */
   getPaymentBeneficiaries(): string {
     const raw = this.configService.get<string>('PAYMENT_BENEFICIARIES');
-
-    if (!raw) {
-      throw new Error(
-        'PAYMENT_BENEFICIARIES is not set in the environment variables',
-      );
-    }
-
+    if (!raw) throw new Error('PAYMENT_BENEFICIARIES is not set');
     try {
-      const beneficiaries = JSON.parse(raw);
-      return beneficiaries;
-    } catch (err) {
-      throw new Error('Failed to parse PAYMENT_BENEFICIARIES JSON');
+      return JSON.parse(raw);
+    } catch {
+      throw new Error('Invalid PAYMENT_BENEFICIARIES JSON');
     }
   }
 
-  /**
-   * Creates a payment checkout session using the ArifPay Express SDK.
-   *
-   * The method attempts to create a session up to 3 times, each with a 5-second timeout.
-   * If all attempts fail, it saves the failed payment attempt to the database with a status of 'FAILED'.
-   *
-   * On success, it stores the payment details and returns the ArifPay session data.
-   *
-   * @param {CreatePaymentDto} createPaymentDto - The DTO containing phone, email, items, URLs, and other metadata.
-   * @returns {Promise<any>} - Resolves to session data from ArifPay if successful, or saved fallback payment record if all retries fail.
-   *
-   * @throws {BadRequestException} - Thrown when SDK import or session creation encounters an unexpected error.
-   *
-   * Required environment variables:
-   * - CANCEL_URL
-   * - SUCCESS_URL
-   * - ERROR_URL
-   * - NOTIFY_URL    // Used for ArifPay webhook callbacks
-   * - API_KEY
-   * - BASE_URL      // Set to https://gateway.arifpay.net/api in production
-   */
   async createPayment(createPaymentDto: CreatePaymentDto): Promise<any> {
     try {
       const { createCheckoutSession } = await import('arifpay-express');
-
       const payload = {
-        phone: createPaymentDto.phone,
-        items: createPaymentDto.items,
-        email: createPaymentDto.email,
+        ...createPaymentDto,
         beneficiaries: this.getPaymentBeneficiaries(),
-        cancelUrl: createPaymentDto.cancelUrl,
-        successUrl: createPaymentDto.successUrl,
-        errorUrl: createPaymentDto.errorUrl,
-        notifyUrl: createPaymentDto.notifyUrl,
       };
 
       let lastError: any;
 
-      // Try up to 3 times with a 5-second timeout each
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
           const result: CheckoutSessionResponse = await this.tryWithTimeout(
@@ -104,7 +52,6 @@ export class PaymentService {
             5000,
           );
 
-          // Save successful payment metadata to DB
           const paymentToSave = {
             ...createPaymentDto,
             userId: new Types.ObjectId(createPaymentDto.userId),
@@ -114,14 +61,24 @@ export class PaymentService {
 
           await this.paymentRepository.create(paymentToSave);
 
+          paymentLogger.info({
+            event: 'Payment Session Created',
+            userId: createPaymentDto.userId,
+            sessionId: result.data.sessionId,
+            status: 'PENDING',
+          });
+
           return result.data;
         } catch (err) {
           lastError = err;
-          console.warn(`ArifPay attempt ${attempt} failed:`, err);
+          paymentLogger.warn({
+            event: 'Payment Attempt Failed',
+            attempt,
+            reason: err,
+          });
         }
       }
 
-      // If all attempts fail, log failed attempt with fallback data
       const fallbackSave = {
         ...createPaymentDto,
         userId: new Types.ObjectId(createPaymentDto.userId),
@@ -129,42 +86,155 @@ export class PaymentService {
         transactionStatus: PaymentStatus.FAILED,
       };
 
+      paymentLogger.error({
+        event: 'Payment Session Failed After Retries',
+        userId: createPaymentDto.userId,
+        reason: lastError?.message || 'Unknown',
+      });
+
       return this.paymentRepository.create(fallbackSave);
     } catch (error) {
-      console.error('ArifPay SDK error:', error);
+      paymentLogger.error({
+        event: 'ArifPay SDK Error',
+        message: error,
+      });
       throw new BadRequestException({
         message: 'Failed to create payment session',
-        error: error || 'Unknown error',
+        error: error,
       });
     }
   }
 
-  async getResponseStatus(
-    responseStatusDto: Partial<ResponseStatusDto>,
-  ): Promise<any> {
-    try {
-      const { sessionId, phone, transactionStatus } = responseStatusDto;
+  async updatePaymentStatus(responseStatusDto: ResponseStatusDto): Promise<{
+    statusCode: number;
+    message: string;
+    data?: PaymentDocument | null;
+  }> {
+    const { phone, sessionId, transactionStatus, transaction } =
+      responseStatusDto;
 
-      if (transactionStatus === PaymentStatus.SUCCESS) {
-        const updatedPayment = await this.paymentRepository.updatePaymentStatus(
-          {
-            sessionId,
-            phone,
-            transactionStatus: PaymentStatus.SUCCESS,
-            transaction: responseStatusDto.transaction,
-          },
-        );
-
-        return updatedPayment;
-      }
-
-      // Gracefully handle non-success status
-      return { message: 'Transaction not successful or no action required' };
-    } catch (error) {
-      throw new BadRequestException({
-        message: 'Failed to process transaction status',
-        error: error,
+    if (!phone || !sessionId || !transactionStatus) {
+      paymentLogger.warn({
+        event: 'Missing Fields on Update',
+        sessionId,
+        phone,
       });
+
+      return {
+        statusCode: 400,
+        message: 'Missing required fields',
+        data: null,
+      };
     }
+
+    const existing = await this.paymentRepository.findBySessionIdAndPhone(
+      sessionId,
+      Number(phone),
+    );
+
+    if (!existing) {
+      paymentLogger.warn({
+        event: 'Payment Not Found for Update',
+        sessionId,
+        phone,
+      });
+
+      return {
+        statusCode: 404,
+        message: 'Payment not found',
+        data: null,
+      };
+    }
+
+    if (existing.transactionStatus === 'SUCCESS') {
+      paymentLogger.info({
+        event: 'No Update Needed',
+        sessionId,
+        phone,
+        reason: 'Already SUCCESS',
+      });
+
+      return {
+        statusCode: 200,
+        message: 'Already marked SUCCESS',
+        data: existing,
+      };
+    }
+
+    const updated = await this.paymentRepository.updateStatus(
+      sessionId,
+      Number(phone),
+      transactionStatus,
+      transaction?.transactionId,
+    );
+
+    if (!updated) {
+      paymentLogger.error({
+        event: 'Payment Update Failed',
+        sessionId,
+        phone,
+        attemptedStatus: transactionStatus,
+      });
+
+      return {
+        statusCode: 500,
+        message: 'Failed to update payment status.',
+        data: null,
+      };
+    }
+
+    paymentLogger.info({
+      event: 'Payment Updated',
+      sessionId,
+      phone,
+      newStatus: transactionStatus,
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Payment updated successfully.',
+      data: updated,
+    };
+  }
+
+  async getUserPayments(userId: string): Promise<{
+    statusCode: number;
+    message: string;
+    data: PaymentDocument[] | null;
+  }> {
+    if (!userId) {
+      return {
+        statusCode: 400,
+        message: 'User ID is required',
+        data: null,
+      };
+    }
+
+    const payments = await this.paymentRepository.findByUserId(userId);
+
+    if (!payments?.length) {
+      paymentLogger.info({
+        event: 'No Payments Found',
+        userId,
+      });
+
+      return {
+        statusCode: 404,
+        message: 'No payments found for this user',
+        data: null,
+      };
+    }
+
+    paymentLogger.info({
+      event: 'Fetched Payments',
+      userId,
+      count: payments.length,
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Payments fetched successfully',
+      data: payments,
+    };
   }
 }
