@@ -1,42 +1,96 @@
 import {
-  IsArray,
+  IsMongoId,
+  IsString,
   IsEmail,
-  IsNotEmpty,
   IsNumber,
   IsOptional,
-  IsString,
+  IsArray,
+  IsDateString,
+  ValidateNested,
+  IsEnum,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  PaymentMethod,
+  PaymentStatus,
+} from '../../common/payment-provider.enums';
+import { Types } from 'mongoose';
+
+export class Item {
+  @IsString()
+  name: string;
+
+  @IsNumber()
+  quantity: number;
+
+  @IsNumber()
+  price: number;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
+
+  @IsString()
+  @IsOptional()
+  image?: string;
+}
 
 export class CreatePaymentDto {
-  @IsNumber({}, { message: 'Phone must be a number.' })
-  @IsNotEmpty({ message: 'Phone number is required.' })
-  phone: number;
+  @IsMongoId()
+  userId: Types.ObjectId;
 
-  @IsString({ message: 'Cancel URL must be a string.' })
-  @IsNotEmpty({ message: 'Cancel URL is required.' })
+  @IsNumber()
+  amount: number;
+
+  @IsString()
   cancelUrl: string;
 
-  @IsString({ message: 'Success URL must be a string.' })
-  @IsNotEmpty({ message: 'Success URL is required.' })
+  @IsString()
   successUrl: string;
 
-  @IsString({ message: 'Error URL must be a string.' })
-  @IsNotEmpty({ message: 'Error URL is required.' })
+  @IsString()
   errorUrl: string;
 
-  @IsString({ message: 'Notify URL must be a string.' })
-  @IsNotEmpty({ message: 'Notify URL is required.' })
+  @IsString()
   notifyUrl: string;
 
-  @IsArray({ message: 'Items must be an array.' })
-  @IsNotEmpty({ message: 'Items array cannot be empty.' })
-  items: any[];
+  @IsNumber()
+  @IsOptional()
+  phone?: number;
 
-  @IsArray({ message: 'Beneficiaries must be an array.' })
-  @IsNotEmpty({ message: 'Beneficiaries array cannot be empty.' })
-  beneficiaries: any[];
-
-  @IsEmail({}, { message: 'Email must be a valid email address.' })
+  @IsEmail()
   @IsOptional()
   email?: string;
+
+  @IsString()
+  @IsOptional()
+  nonce?: string;
+
+  @IsArray()
+  @IsEnum(PaymentMethod, { each: true })
+  paymentMethods?: PaymentMethod[];
+
+  @IsDateString()
+  expireDate: Date;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => Item)
+  items: Item[];
+
+  @IsString()
+  @IsOptional()
+  lang?: string;
+
+  @IsEnum(PaymentStatus)
+  @IsOptional()
+  transactionStatus?: PaymentStatus;
+
+  @IsString()
+  @IsOptional()
+  transactionId?: string | null;
+
+  @IsString()
+  @IsOptional()
+  sessionId?: string | null;
 }
