@@ -9,8 +9,9 @@ import {
   Query,
 } from '@nestjs/common';
 import { LessonService } from '../services/lesson.service';
-import { CreateLessonDto } from '../dto/create-lesson.dto';
+import { CreateLessonDto } from '../dtos/create-lesson.dto';
 import { Lesson } from '../entities/lesson.entity';
+import { UpdateLessonDto } from '../dtos/update-lesson.dto';
 
 @Controller('lessons')
 export class LessonController {
@@ -34,7 +35,7 @@ export class LessonController {
   @Patch(':id')
   update(
     @Param('id') id: string,
-    @Body() updateLessonDto: Partial<Lesson>,
+    @Body() updateLessonDto: UpdateLessonDto,
   ): Promise<Lesson> {
     return this.lessonService.update(id, updateLessonDto);
   }

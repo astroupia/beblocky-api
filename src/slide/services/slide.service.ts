@@ -1,6 +1,6 @@
 import { Injectable, forwardRef, Inject } from '@nestjs/common';
 import { SlideRepository } from '../repositories/slide.repository';
-import { CreateSlideDto } from '../dto/create-slide.dto';
+import { CreateSlideDto } from '../dtos/create-slide.dto';
 import { Slide, SlideDocument } from '../entities/slide.entity';
 import { CourseService } from '../../course/services/course.service';
 import { LessonService } from '../../lesson/services/lesson.service';
@@ -15,6 +15,25 @@ export class SlideService {
     private readonly lessonService: LessonService,
   ) {}
 
+  private mapDtoToEntity(dto: Partial<CreateSlideDto>): Partial<SlideDocument> {
+    const { courseId, lessonId, themeColors, ...restDto } = dto;
+    const mappedDto: Partial<SlideDocument> = {
+      ...restDto,
+      course: courseId,
+      lesson: lessonId,
+      titleFont: dto.titleFont ?? 'Arial',
+      backgroundColor: dto.backgroundColor ?? '#FFFFFF',
+      textColor: dto.textColor ?? '#000000',
+      imageUrls: dto.imageUrls ?? [],
+      themeColors: themeColors ?? {
+        main: '#000000',
+        secondary: '#FFFFFF',
+      },
+    };
+
+    return mappedDto;
+  }
+
   async create(createSlideDto: CreateSlideDto): Promise<SlideDocument> {
     // Verify course exists
     await this.courseService.findById(createSlideDto.courseId.toString());
@@ -24,7 +43,8 @@ export class SlideService {
       await this.lessonService.findById(createSlideDto.lessonId.toString());
     }
 
-    return this.slideRepository.create(createSlideDto);
+    const entity = this.mapDtoToEntity(createSlideDto);
+    return this.slideRepository.create(entity);
   }
 
   async findById(id: string): Promise<SlideDocument> {
@@ -32,7 +52,8 @@ export class SlideService {
   }
 
   async update(id: string, updateData: Partial<Slide>): Promise<SlideDocument> {
-    return this.slideRepository.update(id, updateData);
+    const entity = this.mapDtoToEntity(updateData as Partial<CreateSlideDto>);
+    return this.slideRepository.update(id, entity);
   }
 
   async delete(id: string): Promise<void> {

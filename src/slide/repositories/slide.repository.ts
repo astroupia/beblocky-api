@@ -1,28 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import {
-  Slide,
-  SlideDocument,
-  SlideSchemaClass,
-} from '../entities/slide.entity';
-import { CreateSlideDto } from '../dto/create-slide.dto';
+import { SlideDocument } from '../entities/slide.entity';
 
 @Injectable()
 export class SlideRepository {
   constructor(
-    @InjectModel(SlideSchemaClass.name)
+    @InjectModel('Slide')
     private readonly slideModel: Model<SlideDocument>,
   ) {}
 
-  async create(createSlideDto: CreateSlideDto): Promise<SlideDocument> {
-    const slide = new this.slideModel({
-      title: createSlideDto.title,
-      content: createSlideDto.content,
-      course: createSlideDto.courseId,
-      lesson: createSlideDto.lessonId,
-      order: createSlideDto.order || 0,
-    });
+  async create(data: Partial<SlideDocument>): Promise<SlideDocument> {
+    const slide = new this.slideModel(data);
     return await slide.save();
   }
 
@@ -40,7 +29,10 @@ export class SlideRepository {
     return slide;
   }
 
-  async update(id: string, updateData: Partial<Slide>): Promise<SlideDocument> {
+  async update(
+    id: string,
+    updateData: Partial<SlideDocument>,
+  ): Promise<SlideDocument> {
     const slide = await this.slideModel
       .findByIdAndUpdate(id, updateData, { new: true })
       .exec();

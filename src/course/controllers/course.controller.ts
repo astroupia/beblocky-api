@@ -3,14 +3,13 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   Put,
 } from '@nestjs/common';
 import { CourseService } from '../services/course.service';
-import { CreateCourseDto } from '../dto/create-course.dto';
-import { CreateCourseWithContentDto } from '../dto/create-course-with-content.dto';
+import { CreateCourseDto } from '../dtos/create-course.dto';
+import { CreateCourseWithContentDto } from '../dtos/create-course-with-content.dto';
 import { Course } from '../entities/course.entity';
 
 @Controller('courses')
@@ -18,33 +17,40 @@ export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Post()
-  create(@Body() createCourseDto: CreateCourseDto): Promise<Course> {
-    return this.courseService.create(createCourseDto);
+  async create(@Body() createCourseDto: CreateCourseDto): Promise<Course> {
+    const course = await this.courseService.create(createCourseDto);
+    return course.toObject() as Course;
   }
 
   @Post('with-content')
-  createWithContent(
+  async createWithContent(
     @Body() createCourseWithContentDto: CreateCourseWithContentDto,
-  ) {
-    return this.courseService.createWithContent(createCourseWithContentDto);
+  ): Promise<Course> {
+    const course = await this.courseService.createWithContent(
+      createCourseWithContentDto,
+    );
+    return course.toObject() as Course;
   }
 
   @Get()
-  findAll(): Promise<Course[]> {
-    return this.courseService.findAll();
+  async findAll(): Promise<Course[]> {
+    const courses = await this.courseService.findAll();
+    return courses.map((course) => course.toObject() as Course);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Course> {
-    return this.courseService.findById(id);
+  async findOne(@Param('id') id: string): Promise<Course> {
+    const course = await this.courseService.findById(id);
+    return course.toObject() as Course;
   }
 
   @Put(':id')
-  update(
+  async update(
     @Param('id') id: string,
     @Body() updateCourseDto: Partial<Course>,
   ): Promise<Course> {
-    return this.courseService.update(id, updateCourseDto);
+    const course = await this.courseService.update(id, updateCourseDto);
+    return course.toObject() as Course;
   }
 
   @Delete(':id')
