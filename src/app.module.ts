@@ -12,6 +12,9 @@ import { ParentModule } from './parent/parent.module';
 import { AdminModule } from './admin/admin.module';
 import { TeacherModule } from './teacher/teacher.module';
 import { PaymentModule } from './payment/payment.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { CloudinaryController } from './cloudinary/cloudinary.controller';
+import { CloudinaryService } from './cloudinary/cloudinary.service';
 
 @Module({
   imports: [
@@ -37,6 +40,9 @@ import { PaymentModule } from './payment/payment.module';
     AdminModule,
     TeacherModule,
     PaymentModule,
+    CloudinaryModule,
   ],
+  controllers: [CloudinaryController],
+  providers: [CloudinaryService],
 })
 export class AppModule {}
