@@ -19,8 +19,8 @@ export class SlideService {
     const { courseId, lessonId, themeColors, ...restDto } = dto;
     const mappedDto: Partial<SlideDocument> = {
       ...restDto,
-      course: courseId,
-      lesson: lessonId,
+      courseId: courseId,
+      lessonId: lessonId,
       titleFont: dto.titleFont ?? 'Arial',
       backgroundColor: dto.backgroundColor ?? '#FFFFFF',
       textColor: dto.textColor ?? '#000000',
