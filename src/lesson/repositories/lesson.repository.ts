@@ -15,6 +15,7 @@ export class LessonRepository {
     const lesson = new this.lessonModel({
       title: createLessonDto.title,
       description: createLessonDto.description,
+      duration: createLessonDto.duration,
       course: createLessonDto.courseId,
       slides: createLessonDto.slides || [],
     });
