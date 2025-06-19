@@ -11,6 +11,7 @@ import { SlideModule } from './slide/slide.module';
 import { ParentModule } from './parent/parent.module';
 import { AdminModule } from './admin/admin.module';
 import { TeacherModule } from './teacher/teacher.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { TeacherModule } from './teacher/teacher.module';
     ParentModule,
     AdminModule,
     TeacherModule,
+    PaymentModule,
   ],
 })
 export class AppModule {}

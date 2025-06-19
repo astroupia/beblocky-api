@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { RelationshipType } from '../../organization/entities/organization.entity';
 
 // Domain entity
 export class Parent {
@@ -14,6 +13,13 @@ export class Parent {
   };
   subscription: Types.ObjectId;
   paymentHistory: Types.ObjectId[];
+}
+
+export enum RelationshipType {
+  MOTHER = 'mother',
+  FATHER = 'father',
+  GUARDIAN = 'guardian',
+  OTHER = 'other',
 }
 
 // Mongoose schema class

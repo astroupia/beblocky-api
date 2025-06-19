@@ -8,13 +8,6 @@ export enum OrganizationType {
   OTHER = 'other',
 }
 
-export enum RelationshipType {
-  MOTHER = 'mother',
-  FATHER = 'father',
-  GUARDIAN = 'guardian',
-  OTHER = 'other',
-}
-
 // Domain entity
 export class Organization {
   name: string;
