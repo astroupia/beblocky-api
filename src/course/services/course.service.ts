@@ -24,8 +24,8 @@ export class CourseService {
   ): Promise<CourseDocument> {
     // Create the course first
     const course = await this.courseRepository.create({
-      title: createCourseWithContentDto.title,
-      description: createCourseWithContentDto.description || '',
+      courseTitle: createCourseWithContentDto.courseTitle,
+      courseDescription: createCourseWithContentDto.courseDescription,
       courseLanguage: createCourseWithContentDto.courseLanguage,
     });
 

@@ -13,8 +13,9 @@ export class CourseRepository {
 
   async create(createCourseDto: CreateCourseDto): Promise<CourseDocument> {
     const course = new this.courseModel({
-      title: createCourseDto.title,
-      description: createCourseDto.description,
+      courseTitle: createCourseDto.courseTitle,
+      courseDescription: createCourseDto.courseDescription,
+      courseLanguage: createCourseDto.courseLanguage,
       lessons: createCourseDto.lessonIds || [],
       slides: createCourseDto.slideIds || [],
     });

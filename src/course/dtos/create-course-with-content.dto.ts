@@ -117,14 +117,6 @@ export class CreateSlideDto {
 export class CreateCourseWithContentDto {
   @IsString()
   @IsNotEmpty()
-  title: string;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @IsString()
-  @IsNotEmpty()
   courseTitle: string;
 
   @IsString()
