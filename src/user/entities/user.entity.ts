@@ -21,7 +21,7 @@ export interface User {
 }
 
 // Mongoose schema class
-@Schema({ timestamps: true, discriminatorKey: 'role', collection: 'user' })
+@Schema({ timestamps: true, discriminatorKey: 'role', collection: 'users' })
 export class UserSchemaClass implements User {
   @Prop({ required: true, unique: true })
   email: string;

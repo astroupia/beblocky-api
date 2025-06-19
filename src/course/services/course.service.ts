@@ -29,6 +29,9 @@ export class CourseService {
       courseLanguage: createCourseWithContentDto.courseLanguage,
     });
 
+    const lessonIds: Types.ObjectId[] = [];
+    const slideIds: Types.ObjectId[] = [];
+
     // Create lessons and their slides if provided
     if (createCourseWithContentDto.lessons?.length) {
       for (const lessonDto of createCourseWithContentDto.lessons) {
@@ -38,16 +41,16 @@ export class CourseService {
           description: lessonDto.description,
           duration: lessonDto.duration,
         });
+        lessonIds.push(lesson._id as Types.ObjectId);
 
         // Create slides for this lesson if provided
         if (createCourseWithContentDto.slides?.length) {
           for (const slideDto of createCourseWithContentDto.slides) {
-            await this.slideService.create({
+            const slide = await this.slideService.create({
               courseId: course._id as Types.ObjectId,
               lessonId: lesson._id as Types.ObjectId,
               title: slideDto.title,
               content: slideDto.content,
-              order: slideDto.order,
               titleFont: slideDto.titleFont,
               contentFont: slideDto.contentFont,
               backgroundColor: slideDto.backgroundColor,
@@ -62,11 +65,19 @@ export class CourseService {
                   }
                 : undefined,
             });
+            slideIds.push(slide._id as Types.ObjectId);
           }
         }
       }
     }
-    return this.courseRepository.findById(course._id as string);
+
+    // Update the course document with the collected lesson and slide IDs
+    await this.courseRepository.update(String(course._id), {
+      lessons: lessonIds,
+      slides: slideIds,
+    });
+
+    return this.courseRepository.findById(String(course._id));
   }
 
   async findAll(): Promise<CourseDocument[]> {

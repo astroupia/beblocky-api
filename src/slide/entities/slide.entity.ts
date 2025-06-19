@@ -29,10 +29,10 @@ export class SlideSchemaClass {
   content: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Course', required: true })
-  course: Types.ObjectId;
+  courseId: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'Lesson' })
-  lesson?: Types.ObjectId;
+  lessonId?: Types.ObjectId;
 
   @Prop({ required: true, default: 'Arial' })
   titleFont: string;
