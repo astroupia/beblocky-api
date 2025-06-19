@@ -16,7 +16,7 @@ export class CloudinaryService {
       cloudinary.uploader
         .upload_stream({ resource_type: 'auto' }, (error, result) => {
           if (error) return reject(error);
-          return resolve(result);
+          return resolve(result?.secure_url);
         })
         .end(file.buffer);
     });
