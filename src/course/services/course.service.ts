@@ -43,6 +43,9 @@ export class CourseService {
         });
         lessonIds.push(lesson._id as Types.ObjectId);
 
+        // Collect slide IDs for this lesson
+        const lessonSlideIds: Types.ObjectId[] = [];
+
         // Create slides for this lesson if provided
         if (createCourseWithContentDto.slides?.length) {
           for (const slideDto of createCourseWithContentDto.slides) {
@@ -66,8 +69,14 @@ export class CourseService {
                 : undefined,
             });
             slideIds.push(slide._id as Types.ObjectId);
+            lessonSlideIds.push(slide._id as Types.ObjectId);
           }
         }
+
+        // Update the lesson document with its slides
+        await this.lessonService.update(String(lesson._id), {
+          slides: lessonSlideIds,
+        });
       }
     }
 
