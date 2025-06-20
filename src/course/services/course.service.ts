@@ -6,7 +6,7 @@ import { CreateCourseWithContentDto } from '../dtos/create-course-with-content.d
 import { LessonService } from '../../lesson/services/lesson.service';
 import { SlideService } from '../../slide/services/slide.service';
 import { Types } from 'mongoose';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { CloudinaryService } from 'src/cloudinary/services/cloudinary.service';
 @Injectable()
 export class CourseService {
   constructor(

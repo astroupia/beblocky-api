@@ -13,8 +13,8 @@ import { AdminModule } from './admin/admin.module';
 import { TeacherModule } from './teacher/teacher.module';
 import { PaymentModule } from './payment/payment.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
-import { CloudinaryController } from './cloudinary/cloudinary.controller';
-import { CloudinaryService } from './cloudinary/cloudinary.service';
+import { CloudinaryController } from './cloudinary/controllers/cloudinary.controller';
+import { CloudinaryService } from './cloudinary/services/cloudinary.service';
 
 @Module({
   imports: [

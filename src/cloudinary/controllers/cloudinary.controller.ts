@@ -4,7 +4,7 @@ import {
   Post,
   UploadedFile,
 } from '@nestjs/common';
-import { CloudinaryService } from './cloudinary.service';
+import { CloudinaryService } from '../services/cloudinary.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('uploadMedia')
