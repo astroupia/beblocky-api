@@ -38,9 +38,7 @@ export class SlideController {
     if (lessonId) {
       return this.slideService.findByLessonId(lessonId);
     }
-    return Promise.reject(
-      new Error('Either courseId or lessonId must be provided'),
-    );
+    return this.slideService.findAll();
   }
 
   @Patch(':id')

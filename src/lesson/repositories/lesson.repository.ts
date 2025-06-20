@@ -68,4 +68,8 @@ export class LessonRepository {
       .populate('slides')
       .exec();
   }
+
+  async findAll(): Promise<LessonDocument[]> {
+    return this.lessonModel.find().populate('course').populate('slides').exec();
+  }
 }

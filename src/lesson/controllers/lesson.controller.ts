@@ -28,8 +28,11 @@ export class LessonController {
   }
 
   @Get()
-  findByCourse(@Query('courseId') courseId: string): Promise<Lesson[]> {
-    return this.lessonService.findByCourseId(courseId);
+  findByCourse(@Query('courseId') courseId?: string): Promise<Lesson[]> {
+    if (courseId) {
+      return this.lessonService.findByCourseId(courseId);
+    }
+    return this.lessonService.findAll();
   }
 
   @Patch(':id')

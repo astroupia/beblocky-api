@@ -46,4 +46,8 @@ export class LessonService {
   async findByCourseId(courseId: string): Promise<LessonDocument[]> {
     return this.lessonRepository.findByCourseId(courseId);
   }
+
+  async findAll(): Promise<LessonDocument[]> {
+    return this.lessonRepository.findAll();
+  }
 }

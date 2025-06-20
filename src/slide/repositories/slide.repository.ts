@@ -67,4 +67,8 @@ export class SlideRepository {
       .sort({ order: 1 })
       .exec();
   }
+
+  async findAll(): Promise<SlideDocument[]> {
+    return this.slideModel.find().sort({ order: 1 }).exec();
+  }
 }
