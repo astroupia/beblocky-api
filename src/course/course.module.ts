@@ -13,7 +13,7 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
     MongooseModule.forFeature([{ name: 'Course', schema: CourseSchema }]),
     forwardRef(() => LessonModule),
     forwardRef(() => SlideModule),
-    CloudinaryModule
+    CloudinaryModule,
   ],
   controllers: [CourseController],
   providers: [CourseService, CourseRepository],

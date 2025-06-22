@@ -60,7 +60,6 @@ export class CourseService {
             lessonId: lesson._id as Types.ObjectId,
             title: slideDto.title,
             content: slideDto.content,
-            order: slideDto.order,
             titleFont: slideDto.titleFont,
             contentFont: slideDto.contentFont,
             backgroundColor: slideDto.backgroundColor,
@@ -114,7 +113,7 @@ export class CourseService {
     updateCourseDto: Partial<Course>,
   ): Promise<CourseDocument> {
     const course = await this.courseRepository.findByIdAndUpdate(
-      id,
+      String(id),
       updateCourseDto,
     );
     if (!course) {

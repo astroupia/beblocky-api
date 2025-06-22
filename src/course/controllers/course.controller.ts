@@ -11,9 +11,10 @@ import {
 } from '@nestjs/common';
 import { CourseService } from '../services/course.service';
 import { CreateCourseDto } from '../dtos/create-course.dto';
-import { CreateCourseWithContentDto } from '../dtos/create-course-with-content.dto';
 import { Course } from '../entities/course.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { CreateCourseWithContentDto } from '../dtos/create-course-with-content.dto';
+
 @Controller('courses')
 export class CourseController {
   constructor(private readonly courseService: CourseService) {}
@@ -24,23 +25,13 @@ export class CourseController {
     return course.toObject() as Course;
   }
 
-  // @Post('with-content')
-  // async createWithContent(
-  //   @Body() createCourseWithContentDto: CreateCourseWithContentDto,
-  // ): Promise<Course> {
-  //   const course = await this.courseService.createWithContent(
-  //     createCourseWithContentDto,
-  //   );
-  //   return course.toObject() as Course;
-  // }
-
   @Post('with-content')
   @UseInterceptors(FilesInterceptor('uploadImage'))
   async createWithContent(
     @UploadedFiles() uploadImage: Express.Multer.File[],
     @Body('data') raw: string,
   ) {
-    const dto = JSON.parse(raw);
+    const dto = JSON.parse(raw) as CreateCourseWithContentDto;
     return this.courseService.createWithContent(dto, uploadImage);
   }
 
