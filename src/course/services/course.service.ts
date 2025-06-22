@@ -7,6 +7,7 @@ import { LessonService } from '../../lesson/services/lesson.service';
 import { SlideService } from '../../slide/services/slide.service';
 import { Types } from 'mongoose';
 import { CloudinaryService } from 'src/cloudinary/services/cloudinary.service';
+
 @Injectable()
 export class CourseService {
   constructor(
@@ -33,7 +34,14 @@ export class CourseService {
     const lessonIds: Types.ObjectId[] = [];
     const slideIds: Types.ObjectId[] = [];
 
-    // 1. Create Lessons
+    // 1. Upload Images (shared for all slides)
+    const imageUrls: string[] = [];
+    for (const file of uploadImage || []) {
+      const uploaded = await this.cloudinaryService.uploadFile(file);
+      imageUrls.push(uploaded);
+    }
+
+    // 2. Create Lessons
     for (const lessonDto of dto.lessons || []) {
       const lesson = await this.lessonService.create({
         courseId: course._id as Types.ObjectId,
@@ -42,38 +50,45 @@ export class CourseService {
         duration: lessonDto.duration,
       });
       lessonIds.push(lesson._id as Types.ObjectId);
-    }
 
-    // 2. Upload Images for the ONE Slide
-    const imageUrls: string[] = [];
-    for (const file of uploadImage || []) {
-      const uploaded = await this.cloudinaryService.uploadFile(file);
-      imageUrls.push(uploaded);
-    }
+      // 3. Create Slides for this Lesson
+      const lessonSlideIds: Types.ObjectId[] = [];
+      if (dto.slides?.length) {
+        for (const slideDto of dto.slides) {
+          const slide = await this.slideService.create({
+            courseId: course._id as Types.ObjectId,
+            lessonId: lesson._id as Types.ObjectId,
+            title: slideDto.title,
+            content: slideDto.content,
+            order: slideDto.order,
+            titleFont: slideDto.titleFont,
+            contentFont: slideDto.contentFont,
+            backgroundColor: slideDto.backgroundColor,
+            textColor: slideDto.textColor,
+            imageUrls, // Use array of image URLs from upload
+            startingCode: slideDto.startingCode,
+            solutionCode: slideDto.solutionCode,
+            themeColors: slideDto.themeColors
+              ? {
+                  main: slideDto.themeColors.main,
+                  secondary: slideDto.themeColors.secondary,
+                  accent: slideDto.themeColors.accent,
+                }
+              : undefined,
+            videoUrl: slideDto.videoUrl,
+          });
+          slideIds.push(slide._id as Types.ObjectId);
+          lessonSlideIds.push(slide._id as Types.ObjectId);
+        }
+      }
 
-    // 3. Create ONE Slide (assigning to the first lesson only)
-    if (dto.slides?.length && lessonIds.length > 0) {
-      const slideDto = dto.slides[0]; // Only one slide expected
-      const slide = await this.slideService.create({
-        courseId: course._id as Types.ObjectId,
-        lessonId: lessonIds[0], // attach to first lesson
-        title: slideDto.title,
-        content: slideDto.content,
-        order: slideDto.order,
-        titleFont: slideDto.titleFont,
-        contentFont: slideDto.contentFont,
-        backgroundColor: slideDto.backgroundColor,
-        textColor: slideDto.textColor,
-        imageUrls,
-        startingCode: slideDto.startingCode,
-        solutionCode: slideDto.solutionCode,
-        themeColors: slideDto.themeColors,
-        videoUrl: slideDto.videoUrl,
+      // 4. Update the lesson document with its slides
+      await this.lessonService.update(String(lesson._id), {
+        slides: lessonSlideIds,
       });
-      slideIds.push(slide._id as Types.ObjectId);
     }
 
-    // 4. Update course with lesson and slide references
+    // 5. Update course with lesson and slide references
     await this.courseRepository.update(String(course._id), {
       lessons: lessonIds,
       slides: slideIds,

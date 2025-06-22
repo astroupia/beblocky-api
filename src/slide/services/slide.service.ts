@@ -67,4 +67,8 @@ export class SlideService {
   async findByLessonId(lessonId: string): Promise<SlideDocument[]> {
     return this.slideRepository.findByLessonId(lessonId);
   }
+
+  async findAll(): Promise<SlideDocument[]> {
+    return this.slideRepository.findAll();
+  }
 }
