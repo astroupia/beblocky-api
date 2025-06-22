@@ -25,7 +25,7 @@ export class LessonRepository {
   async findById(id: string): Promise<LessonDocument> {
     const lesson = await this.lessonModel
       .findById(id)
-      .populate('course')
+      .populate('courseId')
       .populate('slides')
       .exec();
 
@@ -63,13 +63,17 @@ export class LessonRepository {
 
   async findByCourseId(courseId: string): Promise<LessonDocument[]> {
     return this.lessonModel
-      .find({ course: courseId })
-      .populate('course')
+      .find({ courseId: courseId })
+      .populate('courseId')
       .populate('slides')
       .exec();
   }
 
   async findAll(): Promise<LessonDocument[]> {
-    return this.lessonModel.find().populate('course').populate('slides').exec();
+    return this.lessonModel
+      .find()
+      .populate('courseId')
+      .populate('slides')
+      .exec();
   }
 }

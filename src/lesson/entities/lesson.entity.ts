@@ -11,7 +11,7 @@ export enum LessonDifficulty {
 export class Lesson {
   title: string;
   description?: string;
-  course: Types.ObjectId;
+  courseId: Types.ObjectId;
   slides: Types.ObjectId[];
   difficulty: LessonDifficulty;
   duration: number;
@@ -28,7 +28,7 @@ export class LessonSchemaClass {
   description: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Course', required: true })
-  course: Types.ObjectId;
+  courseId: Types.ObjectId;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Slide' }] })
   slides: Types.ObjectId[];
