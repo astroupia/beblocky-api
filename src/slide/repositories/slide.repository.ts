@@ -18,8 +18,8 @@ export class SlideRepository {
   async findById(id: string): Promise<SlideDocument> {
     const slide = await this.slideModel
       .findById(id)
-      .populate('course')
-      .populate('lesson')
+      .populate('courseId')
+      .populate('lessonId')
       .exec();
 
     if (!slide) {

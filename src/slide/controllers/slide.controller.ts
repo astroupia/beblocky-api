@@ -7,19 +7,27 @@ import {
   Param,
   Delete,
   Query,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { SlideService } from '../services/slide.service';
 import { CreateSlideDto } from '../dtos/create-slide.dto';
 import { UpdateSlideDto } from '../dtos/update-slide.dto';
 import { SlideDocument } from '../entities/slide.entity';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('slides')
 export class SlideController {
   constructor(private readonly slideService: SlideService) {}
 
   @Post()
-  create(@Body() createSlideDto: CreateSlideDto): Promise<SlideDocument> {
-    return this.slideService.create(createSlideDto);
+  @UseInterceptors(FilesInterceptor('uploadImage'))
+  async create(
+    @UploadedFiles() uploadImage: Express.Multer.File[],
+    @Body('data') raw: string,
+  ): Promise<SlideDocument> {
+    const dto = JSON.parse(raw) as CreateSlideDto;
+    return this.slideService.createWithImages(dto, uploadImage);
   }
 
   @Get(':id')
@@ -42,11 +50,14 @@ export class SlideController {
   }
 
   @Patch(':id')
-  update(
+  @UseInterceptors(FilesInterceptor('uploadImage'))
+  async update(
     @Param('id') id: string,
-    @Body() updateSlideDto: UpdateSlideDto,
+    @UploadedFiles() uploadImage: Express.Multer.File[],
+    @Body('data') raw: string,
   ): Promise<SlideDocument> {
-    return this.slideService.update(id, updateSlideDto);
+    const dto = JSON.parse(raw) as UpdateSlideDto;
+    return this.slideService.updateWithImages(id, dto, uploadImage);
   }
 
   @Delete(':id')

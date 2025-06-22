@@ -4,6 +4,7 @@ import { CreateSlideDto } from '../dtos/create-slide.dto';
 import { Slide, SlideDocument } from '../entities/slide.entity';
 import { CourseService } from '../../course/services/course.service';
 import { LessonService } from '../../lesson/services/lesson.service';
+import { CloudinaryService } from '../../cloudinary/services/cloudinary.service';
 
 @Injectable()
 export class SlideService {
@@ -13,6 +14,7 @@ export class SlideService {
     private readonly courseService: CourseService,
     @Inject(forwardRef(() => LessonService))
     private readonly lessonService: LessonService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   private mapDtoToEntity(dto: Partial<CreateSlideDto>): Partial<SlideDocument> {
@@ -70,5 +72,36 @@ export class SlideService {
 
   async findAll(): Promise<SlideDocument[]> {
     return this.slideRepository.findAll();
+  }
+
+  async createWithImages(
+    createSlideDto: CreateSlideDto,
+    uploadImage: any[],
+  ): Promise<SlideDocument> {
+    // Upload images if provided
+    let imageUrls: string[] = [];
+    if (uploadImage && uploadImage.length > 0) {
+      imageUrls = await Promise.all(
+        uploadImage.map((file) => this.cloudinaryService.uploadFile(file)),
+      );
+    }
+    const dtoWithImages = { ...createSlideDto, imageUrls };
+    return this.create(dtoWithImages);
+  }
+
+  async updateWithImages(
+    id: string,
+    updateSlideDto: Partial<CreateSlideDto>,
+    uploadImage: any[],
+  ): Promise<SlideDocument> {
+    // Upload images if provided
+    let imageUrls: string[] = updateSlideDto.imageUrls || [];
+    if (uploadImage && uploadImage.length > 0) {
+      imageUrls = await Promise.all(
+        uploadImage.map((file) => this.cloudinaryService.uploadFile(file)),
+      );
+    }
+    const dtoWithImages = { ...updateSlideDto, imageUrls };
+    return this.update(id, dtoWithImages);
   }
 }
