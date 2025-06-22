@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Payment, PaymentDocument } from '../entities/payment.entity';
-import { CreatePaymentDto } from '../dto/create-payment.dto';
-import { PaymentStatus } from 'src/common/payment-provider.enums';
+import { PaymentDocument } from '../entities/payment.entity';
 import { ResponseStatusDto } from '../dto/response-status.dto';
 import { Types } from 'mongoose';
+import { PaymentStatus } from '../../common/payment-provider.enums';
 @Injectable()
 export class PaymentRepository {
   constructor(
@@ -25,23 +24,6 @@ export class PaymentRepository {
     return await payment.save();
   }
 
-  /**
-   * Updates the payment status of a transaction if it exists and hasn't already been marked as SUCCESS.
-   *
-   * @param responseStatusDto - The DTO containing phone, sessionId, transaction details, and new transactionStatus.
-   *
-   * @returns A response object containing:
-   *  - statusCode: HTTP-like status code indicating the result (200, 400, 404, 500),
-   *  - message: a human-readable status message,
-   *  - data: the updated or existing payment document, if applicable.
-   *
-   * Logic:
-   *  - Validates required input.
-   *  - Looks up the payment document using phone and sessionId.
-   *  - If not found, returns 404.
-   *  - If already marked as SUCCESS, returns 200 with no update.
-   *  - If found and not SUCCESS, updates the status and returns updated document.
-   */
   /**
    * Updates the transaction status of a payment if it's not already marked as SUCCESS.
    *
@@ -63,7 +45,7 @@ export class PaymentRepository {
       return null; // not found
     }
 
-    if (existing.transactionStatus === 'SUCCESS') {
+    if (existing.transactionStatus === PaymentStatus.SUCCESS) {
       return existing;
     }
 

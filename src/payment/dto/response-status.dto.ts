@@ -3,12 +3,10 @@ import {
   IsString,
   IsEnum,
   IsNumber,
-  IsDateString,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PaymentStatus } from '../../common/payment-provider.enums';
-
 
 class TransactionInfo {
   @IsString()

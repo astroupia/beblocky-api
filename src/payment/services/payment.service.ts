@@ -25,7 +25,7 @@ export class PaymentService {
     ]);
   }
 
-  getPaymentBeneficiaries(): string {
+  getPaymentBeneficiaries(): any {
     const raw = this.configService.get<string>('PAYMENT_BENEFICIARIES');
     if (!raw) throw new Error('PAYMENT_BENEFICIARIES is not set');
     try {
@@ -35,7 +35,9 @@ export class PaymentService {
     }
   }
 
-  async createPayment(createPaymentDto: CreatePaymentDto): Promise<any> {
+  async createPayment(
+    createPaymentDto: CreatePaymentDto,
+  ): Promise<CheckoutSessionResponse['data'] | PaymentDocument> {
     try {
       const { createCheckoutSession } = await import('arifpay-express');
       const payload = {
@@ -146,7 +148,7 @@ export class PaymentService {
       };
     }
 
-    if (existing.transactionStatus === 'SUCCESS') {
+    if (existing.transactionStatus === PaymentStatus.SUCCESS) {
       paymentLogger.info({
         event: 'No Update Needed',
         sessionId,
