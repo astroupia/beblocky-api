@@ -7,7 +7,10 @@ import { UserRepository } from './repositories/user.repository';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]), CloudinaryModule],
+  imports: [
+    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+    CloudinaryModule,
+  ],
   controllers: [UserController],
   providers: [UserService, UserRepository],
   exports: [UserService],

@@ -28,8 +28,8 @@ export interface ICreateLessonDto {
   tags?: string[];
 }
 
-export interface IUpdateLessonDto
-  extends Partial<Omit<ICreateLessonDto, 'courseId'>> {}
+// Partial update DTO that excludes courseId from being updated
+export type IUpdateLessonDto = Partial<Omit<ICreateLessonDto, 'courseId'>>;
 
 export interface IAddSlideDto {
   slideId: Types.ObjectId;

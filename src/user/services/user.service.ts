@@ -6,14 +6,18 @@ import { UpdateUserDto } from '../dtos/update-user.dto';
 import { CloudinaryService } from '../../cloudinary/services/cloudinary.service';
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository,
-    private readonly cloudinaryService: CloudinaryService
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  async create(createUserDto: CreateUserDto, file: Express.Multer.File): Promise<User> {
+  async create(
+    createUserDto: CreateUserDto,
+    file: Express.Multer.File,
+  ): Promise<User> {
     if (file) {
       const imageUrl = await this.cloudinaryService.uploadFile(file);
-      createUserDto.image = imageUrl; 
+      createUserDto.image = imageUrl;
     }
     return this.userRepository.create(createUserDto);
   }

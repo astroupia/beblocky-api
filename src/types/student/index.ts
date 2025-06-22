@@ -1,5 +1,4 @@
 import { Types } from 'mongoose';
-import { UserRole } from '../user';
 
 export interface IStudent {
   userId: Types.ObjectId;
