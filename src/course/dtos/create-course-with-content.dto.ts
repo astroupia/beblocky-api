@@ -62,8 +62,9 @@ export class CreateSlideDto {
   content?: string;
 
   @IsNumber()
-  @IsOptional()
-  order?: number;
+  @Min(0)
+  @IsNotEmpty()
+  order: number;
 
   @IsString()
   @IsOptional()

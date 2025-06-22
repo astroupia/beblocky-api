@@ -60,6 +60,7 @@ export class CourseService {
             lessonId: lesson._id as Types.ObjectId,
             title: slideDto.title,
             content: slideDto.content,
+            order: slideDto.order,
             titleFont: slideDto.titleFont,
             contentFont: slideDto.contentFont,
             backgroundColor: slideDto.backgroundColor,
