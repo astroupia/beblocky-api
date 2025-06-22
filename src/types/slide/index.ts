@@ -6,6 +6,7 @@ export interface ISlide {
   content?: string;
   course: Types.ObjectId;
   lesson?: Types.ObjectId;
+  order: number;
   titleFont: string;
   startingCode?: string;
   solutionCode?: string;
@@ -23,6 +24,7 @@ export interface ISlide {
 export interface ICreateSlideDto {
   title: string;
   content?: string;
+  order: number;
   courseId: Types.ObjectId;
   lessonId: Types.ObjectId;
   titleFont?: string;
