@@ -10,8 +10,33 @@ export class StudentRepository {
     private readonly studentModel: Model<StudentDocument>,
   ) {}
 
+  private convertToObjectId(id: string | Types.ObjectId): Types.ObjectId {
+    return typeof id === 'string' ? new Types.ObjectId(id) : id;
+  }
+
+  private convertArrayToObjectIds(
+    ids: (string | Types.ObjectId)[] = [],
+  ): Types.ObjectId[] {
+    return ids.map((id) => this.convertToObjectId(id));
+  }
+
   async create(data: Partial<Student>): Promise<StudentDocument> {
-    const createdStudent = new this.studentModel(data);
+    const studentData = { ...data };
+
+    // Convert ID fields if they exist
+    if (data.schoolId) {
+      studentData.schoolId = this.convertToObjectId(data.schoolId);
+    }
+    if (data.parentId) {
+      studentData.parentId = this.convertToObjectId(data.parentId);
+    }
+    if (data.enrolledCourses) {
+      studentData.enrolledCourses = this.convertArrayToObjectIds(
+        data.enrolledCourses,
+      );
+    }
+
+    const createdStudent = new this.studentModel(studentData);
     return createdStudent.save();
   }
 
@@ -31,8 +56,23 @@ export class StudentRepository {
     id: string,
     data: Partial<Student>,
   ): Promise<StudentDocument> {
+    const updateData = { ...data };
+
+    // Convert ID fields if they exist in the update data
+    if (data.schoolId) {
+      updateData.schoolId = this.convertToObjectId(data.schoolId);
+    }
+    if (data.parentId) {
+      updateData.parentId = this.convertToObjectId(data.parentId);
+    }
+    if (data.enrolledCourses) {
+      updateData.enrolledCourses = this.convertArrayToObjectIds(
+        data.enrolledCourses,
+      );
+    }
+
     const student = await this.studentModel
-      .findByIdAndUpdate(id, data, { new: true })
+      .findByIdAndUpdate(id, updateData, { new: true })
       .exec();
     if (!student) {
       throw new NotFoundException(`Student with ID ${id} not found`);

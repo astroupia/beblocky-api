@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Course, CourseDocument } from '../entities/course.entity';
 import { CreateCourseDto } from '../dtos/create-course.dto';
 
@@ -11,13 +11,28 @@ export class CourseRepository {
     private readonly courseModel: Model<CourseDocument>,
   ) {}
 
+  private convertToObjectId(id: string | Types.ObjectId): Types.ObjectId {
+    return typeof id === 'string' ? new Types.ObjectId(id) : id;
+  }
+
+  private convertArrayToObjectIds(
+    ids: (string | Types.ObjectId)[] = [],
+  ): Types.ObjectId[] {
+    return ids.map((id) => this.convertToObjectId(id));
+  }
+
   async create(createCourseDto: CreateCourseDto): Promise<CourseDocument> {
     const course = new this.courseModel({
       courseTitle: createCourseDto.courseTitle,
       courseDescription: createCourseDto.courseDescription,
       courseLanguage: createCourseDto.courseLanguage,
-      lessons: createCourseDto.lessonIds || [],
-      slides: createCourseDto.slideIds || [],
+      lessons: this.convertArrayToObjectIds(createCourseDto.lessonIds),
+      slides: this.convertArrayToObjectIds(createCourseDto.slideIds),
+      organization: this.convertArrayToObjectIds(createCourseDto.organization),
+      subType: createCourseDto.subType,
+      status: createCourseDto.status,
+      rating: createCourseDto.rating,
+      language: createCourseDto.language,
     });
     return await course.save();
   }
@@ -40,8 +55,24 @@ export class CourseRepository {
     id: string,
     updateData: Partial<Course>,
   ): Promise<CourseDocument> {
+    const dataToUpdate = { ...updateData };
+
+    // Convert ID fields if they exist in the update data
+    if (updateData.lessons) {
+      dataToUpdate.lessons = this.convertArrayToObjectIds(updateData.lessons);
+    }
+    if (updateData.slides) {
+      dataToUpdate.slides = this.convertArrayToObjectIds(updateData.slides);
+    }
+    if (updateData.students) {
+      dataToUpdate.students = this.convertArrayToObjectIds(updateData.students);
+    }
+    if (updateData.school) {
+      dataToUpdate.school = this.convertToObjectId(updateData.school);
+    }
+
     const course = await this.courseModel
-      .findByIdAndUpdate(id, updateData, { new: true })
+      .findByIdAndUpdate(id, dataToUpdate, { new: true })
       .exec();
 
     if (!course) {
