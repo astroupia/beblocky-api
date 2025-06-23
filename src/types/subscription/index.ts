@@ -1,52 +1,61 @@
 import { Types } from 'mongoose';
-import { CourseSubscriptionType } from '../course';
+
+export enum SubscriptionPlan {
+  FREE = 'Free',
+  STARTER = 'Starter',
+  BUILDER = 'Builder',
+  PRO_BUNDLE = 'Pro-Bundle',
+  ORGANIZATION = 'Organization',
+}
 
 export enum SubscriptionStatus {
   ACTIVE = 'active',
+  CANCELED = 'canceled',
   EXPIRED = 'expired',
-  CANCELLED = 'cancelled',
-  PENDING = 'pending',
+  TRIAL = 'trial',
+}
+
+export enum BillingCycle {
+  MONTHLY = 'monthly',
+  QUARTERLY = 'quarterly',
+  YEARLY = 'yearly',
 }
 
 export interface ISubscription {
   userId: Types.ObjectId;
-  planName: CourseSubscriptionType;
+  planName: SubscriptionPlan;
   status: SubscriptionStatus;
   startDate: Date;
   endDate: Date;
   autoRenew: boolean;
-  paymentHistory: Array<{
-    amount: number;
-    date: Date;
-    transactionId: string;
-  }>;
+  price: number;
+  currency: string;
+  billingCycle: BillingCycle;
+  features: string[];
+  paymentHistory: Types.ObjectId[];
+  lastPaymentDate?: Date;
+  nextBillingDate?: Date;
+  trialEndsAt?: Date;
+  cancelAtPeriodEnd: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface ICreateSubscriptionDto {
   userId: Types.ObjectId;
-  planName: CourseSubscriptionType;
+  planName: SubscriptionPlan;
+  status?: SubscriptionStatus;
   startDate: Date;
   endDate: Date;
   autoRenew?: boolean;
+  price: number;
+  currency?: string;
+  billingCycle: BillingCycle;
+  features?: string[];
+  lastPaymentDate?: Date;
+  nextBillingDate?: Date;
+  trialEndsAt?: Date;
+  cancelAtPeriodEnd?: boolean;
 }
 
-export interface IUpdateSubscriptionDto {
-  status?: SubscriptionStatus;
-  endDate?: Date;
-  autoRenew?: boolean;
-}
-
-export interface IAddPaymentDto {
-  amount: number;
-  transactionId: string;
-}
-
-export interface IFindByStatusDto {
-  status: SubscriptionStatus;
-}
-
-export interface IFindByPlanDto {
-  planName: CourseSubscriptionType;
-}
+export type IUpdateSubscriptionDto = Partial<ICreateSubscriptionDto>;

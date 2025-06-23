@@ -1,7 +1,8 @@
 import { Types } from 'mongoose';
+import { ICreateLessonDto, ICreateSlideDto } from '..';
 
 export enum CourseSubscriptionType {
-  FREE = 'active',
+  FREE = 'free',
   STARTER = 'starter',
   BUILDER = 'builder',
   PRO = 'pro-bundle',
@@ -20,38 +21,38 @@ export interface ICourse {
   slides: Types.ObjectId[];
   lessons: Types.ObjectId[];
   students: Types.ObjectId[];
+  organization: Types.ObjectId[];
   subType: CourseSubscriptionType;
   status: CourseStatus;
   rating: number;
-  school: Types.ObjectId;
   language: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ICreateCourseDto {
   courseTitle: string;
-  courseDescription: string;
+  courseDescription?: string;
   courseLanguage: string;
+  lessonIds?: Types.ObjectId[];
+  slideIds?: Types.ObjectId[];
+  organization?: Types.ObjectId[];
   subType?: CourseSubscriptionType;
   status?: CourseStatus;
+  rating?: number;
   language?: string;
 }
 
-export interface ICreateCourseWithContentDto extends ICreateCourseDto {
-  slides?: Array<{
-    title: string;
-    content: string;
-    order: number;
-  }>;
-  lessons?: Array<{
-    title: string;
-    description: string;
-    order: number;
-  }>;
-}
+export type IUpdateCourseDto = Partial<ICreateCourseDto>;
 
-export interface IUpdateCourseDto extends Partial<ICreateCourseDto> {
+export interface ICreateCourseWithContentDto {
+  courseTitle: string;
+  courseDescription: string;
+  courseLanguage: string;
+  lessons?: ICreateLessonDto[];
+  slides?: ICreateSlideDto[];
+  subType?: CourseSubscriptionType;
+  status?: CourseStatus;
   rating?: number;
-  students?: Types.ObjectId[];
-  slides?: Types.ObjectId[];
-  lessons?: Types.ObjectId[];
+  language?: string;
 }

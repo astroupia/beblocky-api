@@ -1,37 +1,40 @@
 import { Types } from 'mongoose';
-import { RelationshipType } from '../../parent/entities/parent.entity';
+import { ICreateUserDto, IUpdateUserDto } from '../user';
+
+export enum RelationshipType {
+  MOTHER = 'mother',
+  FATHER = 'father',
+  GUARDIAN = 'guardian',
+  OTHER = 'other',
+}
+
+export interface IAddress {
+  subCity: string;
+  city: string;
+  country: string;
+}
 
 export interface IParent {
+  userId: Types.ObjectId;
   children: Types.ObjectId[];
   relationship: RelationshipType;
   phoneNumber: string;
-  address: {
-    subCity: string;
-    city: string;
-    country: string;
-  };
+  address: IAddress;
   subscription: Types.ObjectId;
   paymentHistory: Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
 }
 
-export interface ICreateParentDto {
+export interface ICreateParentDto extends ICreateUserDto {
   children?: Types.ObjectId[];
   relationship: RelationshipType;
   phoneNumber: string;
-  address: {
-    subCity: string;
-    city: string;
-    country: string;
-  };
+  address: IAddress;
 }
 
-export interface IUpdateParentDto
-  extends Partial<Omit<ICreateParentDto, 'relationship'>> {
-  subscription?: Types.ObjectId;
-  paymentHistory?: Types.ObjectId[];
-}
+export type IUpdateParentDto = Partial<ICreateParentDto> &
+  Partial<IUpdateUserDto>;
 
 export interface IAddChildDto {
   childId: Types.ObjectId;
@@ -39,12 +42,4 @@ export interface IAddChildDto {
 
 export interface IRemoveChildDto {
   childId: Types.ObjectId;
-}
-
-export interface IAddPaymentDto {
-  paymentId: Types.ObjectId;
-}
-
-export interface IUpdateSubscriptionDto {
-  subscriptionId: Types.ObjectId;
 }

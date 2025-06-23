@@ -9,7 +9,7 @@ export enum LessonDifficulty {
 export interface ILesson {
   title: string;
   description?: string;
-  course: Types.ObjectId;
+  courseId: Types.ObjectId;
   slides: Types.ObjectId[];
   difficulty: LessonDifficulty;
   duration: number;
@@ -28,8 +28,7 @@ export interface ICreateLessonDto {
   tags?: string[];
 }
 
-// Partial update DTO that excludes courseId from being updated
-export type IUpdateLessonDto = Partial<Omit<ICreateLessonDto, 'courseId'>>;
+export type IUpdateLessonDto = Partial<ICreateLessonDto>;
 
 export interface IAddSlideDto {
   slideId: Types.ObjectId;

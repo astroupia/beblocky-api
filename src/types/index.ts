@@ -6,3 +6,4 @@ export * from './organization';
 export * from './subscription';
 export * from './lesson';
 export * from './slide';
+export * from './admin';
