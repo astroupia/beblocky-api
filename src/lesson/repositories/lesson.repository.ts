@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Lesson, LessonDocument } from '../entities/lesson.entity';
 import { CreateLessonDto } from '../dtos/create-lesson.dto';
 
@@ -12,11 +12,15 @@ export class LessonRepository {
   ) {}
 
   async create(createLessonDto: CreateLessonDto): Promise<LessonDocument> {
+    const courseId =
+      typeof createLessonDto.courseId === 'string'
+        ? new Types.ObjectId(createLessonDto.courseId)
+        : createLessonDto.courseId;
     const lesson = new this.lessonModel({
       title: createLessonDto.title,
       description: createLessonDto.description,
       duration: createLessonDto.duration,
-      course: createLessonDto.courseId,
+      courseId,
       slides: createLessonDto.slides || [],
     });
     return await lesson.save();

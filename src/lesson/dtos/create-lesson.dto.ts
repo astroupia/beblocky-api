@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsEnum,
   IsArray,
+  IsMongoId,
 } from 'class-validator';
 import { Types } from 'mongoose';
 import { LessonDifficulty } from '../entities/lesson.entity';
@@ -18,6 +19,7 @@ export class CreateLessonDto {
   @IsOptional()
   description?: string;
 
+  @IsMongoId()
   @IsNotEmpty()
   courseId: Types.ObjectId;
 
