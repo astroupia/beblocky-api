@@ -66,8 +66,10 @@ export class LessonRepository {
   }
 
   async findByCourseId(courseId: string): Promise<LessonDocument[]> {
+    const objectId =
+      typeof courseId === 'string' ? new Types.ObjectId(courseId) : courseId;
     return this.lessonModel
-      .find({ courseId: courseId })
+      .find({ courseId: objectId })
       .populate('courseId')
       .populate('slides')
       .exec();
