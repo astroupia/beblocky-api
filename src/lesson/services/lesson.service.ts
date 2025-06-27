@@ -29,6 +29,13 @@ export class LessonService {
     id: string,
     updateData: Partial<Lesson>,
   ): Promise<LessonDocument> {
+    const isMongoOperator = Object.keys(updateData).some((key) =>
+      ['$pull', '$addToSet', '$push'].includes(key),
+    );
+    if (isMongoOperator) {
+      return this.lessonRepository.updateRaw(id, updateData);
+    }
+
     return this.lessonRepository.update(id, updateData);
   }
 

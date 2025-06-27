@@ -40,6 +40,18 @@ export class LessonRepository {
     return lesson;
   }
 
+  async updateRaw(id: string, rawUpdate: any): Promise<LessonDocument> {
+    const lesson = await this.lessonModel
+      .findByIdAndUpdate(id, rawUpdate, { new: true })
+      .exec();
+
+    if (!lesson) {
+      throw new NotFoundException(`Lesson with ID ${id} not found`);
+    }
+
+    return lesson;
+  }
+
   async update(
     id: string,
     updateData: Partial<Lesson>,
