@@ -15,6 +15,7 @@ import { PaymentModule } from './payment/payment.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { CloudinaryController } from './cloudinary/controllers/cloudinary.controller';
 import { CloudinaryService } from './cloudinary/services/cloudinary.service';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { CloudinaryService } from './cloudinary/services/cloudinary.service';
     TeacherModule,
     PaymentModule,
     CloudinaryModule,
+    StripeModule,
   ],
   controllers: [CloudinaryController],
   providers: [CloudinaryService],
