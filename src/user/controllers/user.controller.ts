@@ -8,6 +8,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
 import { CreateUserDto } from '../dtos/create-user.dto';
@@ -29,6 +30,11 @@ export class UserController {
   @Get()
   findAll() {
     return this.userService.findAll();
+  }
+
+  @Get('by-email')
+  findByEmail(@Query('email') email: string) {
+    return this.userService.findByEmail(email);
   }
 
   @Get(':id')
