@@ -21,4 +21,22 @@ export class CloudinaryService {
         .end(file.buffer);
     });
   }
+
+  async uploadBuffer(buffer: Buffer, folder: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            resource_type: 'auto',
+            folder: folder,
+          },
+          (error, result) => {
+            if (error)
+              return reject(new Error(error.message || 'Upload failed'));
+            return resolve(result?.secure_url || '');
+          },
+        )
+        .end(buffer);
+    });
+  }
 }

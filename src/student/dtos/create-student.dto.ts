@@ -57,6 +57,23 @@ export class CreateStudentDto extends CreateUserDto {
   @IsOptional()
   coins?: number;
 
+  @IsNumber()
+  @IsOptional()
+  codingStreak?: number;
+
+  @IsDate()
+  @IsOptional()
+  @Type(() => Date)
+  lastCodingActivity?: Date;
+
+  @IsNumber()
+  @IsOptional()
+  totalCoinsEarned?: number;
+
+  @IsNumber()
+  @IsOptional()
+  totalTimeSpent?: number;
+
   @IsString({ each: true })
   @IsOptional()
   goals?: string[];

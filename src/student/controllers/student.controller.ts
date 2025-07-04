@@ -62,4 +62,35 @@ export class StudentController {
   addGoal(@Param('id') id: string, @Body('goal') goal: string) {
     return this.studentService.addGoal(id, goal);
   }
+
+  @Get(':id/streak')
+  getCodingStreak(@Param('id') id: string) {
+    return this.studentService.getCodingStreak(id);
+  }
+
+  @Patch(':id/activity')
+  updateCodingActivity(@Param('id') id: string) {
+    return this.studentService.updateCodingStreak(id);
+  }
+
+  @Get(':id/coins/total')
+  getTotalCoinsEarned(@Param('id') id: string) {
+    return this.studentService.getTotalCoinsEarned(id);
+  }
+
+  @Post(':id/coins/add')
+  addCoinsAndUpdateTotal(
+    @Param('id') id: string,
+    @Body('amount') amount: number,
+  ) {
+    return this.studentService.addCoinsAndUpdateTotal(id, amount);
+  }
+
+  @Patch(':id/time-spent')
+  updateTotalTimeSpent(
+    @Param('id') id: string,
+    @Body('minutes') minutes: number,
+  ) {
+    return this.studentService.updateTotalTimeSpent(id, minutes);
+  }
 }

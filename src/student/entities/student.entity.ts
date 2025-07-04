@@ -21,6 +21,10 @@ export interface Student extends User {
   parentId?: Types.ObjectId;
   enrolledCourses: Types.ObjectId[];
   coins: number;
+  codingStreak: number; // Current coding streak
+  lastCodingActivity: Date; // Last coding activity for streak
+  totalCoinsEarned: number; // Total coins earned across all courses
+  totalTimeSpent: number; // Total learning time in minutes
   goals?: string[];
   subscription?: string;
   emergencyContact?: {
@@ -53,6 +57,18 @@ export class StudentSchemaClass extends UserSchemaClass implements Student {
 
   @Prop({ default: 0 })
   coins: number;
+
+  @Prop({ default: 0 })
+  codingStreak: number;
+
+  @Prop({ default: null })
+  lastCodingActivity: Date;
+
+  @Prop({ default: 0 })
+  totalCoinsEarned: number;
+
+  @Prop({ default: 0 })
+  totalTimeSpent: number;
 
   @Prop({ type: [String], default: [] })
   goals?: string[];
