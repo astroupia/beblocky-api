@@ -64,4 +64,12 @@ export class SlideController {
   remove(@Param('id') id: string): Promise<void> {
     return this.slideService.delete(id);
   }
+
+  @Delete(':id/images')
+  removeImages(
+    @Param('id') id: string,
+    @Body('imageUrls') imageUrls: string[],
+  ): Promise<SlideDocument> {
+    return this.slideService.removeImages(id, imageUrls);
+  }
 }

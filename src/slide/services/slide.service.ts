@@ -89,19 +89,72 @@ export class SlideService {
     return this.create(dtoWithImages);
   }
 
+  /**
+   * Updates a slide with images, preserving existing images and appending new ones.
+   *
+   * Behavior:
+   * - Preserves all existing images unless explicitly removed
+   * - Appends newly uploaded images to existing ones
+   * - Can remove specific images using removeImageUrls field
+   * - If imageUrls is explicitly provided in DTO, it replaces all images (legacy behavior)
+   *
+   * @param id - Slide ID
+   * @param updateSlideDto - Update data including optional removeImageUrls array
+   * @param uploadImage - Array of new image files to upload
+   * @returns Updated slide document
+   */
   async updateWithImages(
     id: string,
-    updateSlideDto: Partial<CreateSlideDto>,
+    updateSlideDto: Partial<CreateSlideDto> & { removeImageUrls?: string[] },
     uploadImage: any[],
   ): Promise<SlideDocument> {
-    // Upload images if provided
-    let imageUrls: string[] = updateSlideDto.imageUrls || [];
-    if (uploadImage && uploadImage.length > 0) {
-      imageUrls = await Promise.all(
-        uploadImage.map((file) => this.cloudinaryService.uploadFile(file)),
+    // Get the existing slide to preserve current images
+    const existingSlide = await this.findById(id);
+    let imageUrls: string[] = [...(existingSlide.imageUrls || [])];
+
+    // Remove specified images if any
+    if (
+      updateSlideDto.removeImageUrls &&
+      updateSlideDto.removeImageUrls.length > 0
+    ) {
+      imageUrls = imageUrls.filter(
+        (url) => !updateSlideDto.removeImageUrls!.includes(url),
       );
     }
+
+    // Upload and append new images if provided
+    if (uploadImage && uploadImage.length > 0) {
+      const newImageUrls = await Promise.all(
+        uploadImage.map((file) => this.cloudinaryService.uploadFile(file)),
+      );
+      imageUrls = [...imageUrls, ...newImageUrls];
+    }
+
+    // If imageUrls is explicitly provided in the DTO, use it (for complete replacement)
+    if (updateSlideDto.imageUrls !== undefined) {
+      imageUrls = updateSlideDto.imageUrls;
+    }
+
     const dtoWithImages = { ...updateSlideDto, imageUrls };
     return this.update(id, dtoWithImages);
+  }
+
+  /**
+   * Removes specific images from a slide by their URLs.
+   *
+   * @param id - Slide ID
+   * @param imageUrlsToRemove - Array of image URLs to remove
+   * @returns Updated slide document
+   */
+  async removeImages(
+    id: string,
+    imageUrlsToRemove: string[],
+  ): Promise<SlideDocument> {
+    const existingSlide = await this.findById(id);
+    const updatedImageUrls = existingSlide.imageUrls.filter(
+      (url) => !imageUrlsToRemove.includes(url),
+    );
+
+    return this.update(id, { imageUrls: updatedImageUrls });
   }
 }
