@@ -8,6 +8,7 @@ import { ClassRepository } from '../repositories/class.repository';
 import { Class, ClassDocument, ClassUserType } from '../entities/class.entity';
 import { CreateClassDto } from '../dtos/create-class.dto';
 import { UpdateClassDto, ExtendClassDto } from '../dtos/update-class.dto';
+import { UpdateClassSettingsDto } from '../dtos/update-class-settings.dto';
 import { AddStudentDto, RemoveStudentDto } from '../dtos/add-student.dto';
 import { AddCourseDto, RemoveCourseDto } from '../dtos/add-course.dto';
 import { StudentService } from '../../student/services/student.service';
@@ -50,14 +51,49 @@ export class ClassService {
       metadata,
     } = createClassDto;
 
+    // Validate required fields
+    if (!courses || !Array.isArray(courses) || courses.length === 0) {
+      throw new BadRequestException('At least one course is required');
+    }
+
+    if (!userId) {
+      throw new BadRequestException('User ID is required');
+    }
+
+    if (!userType) {
+      throw new BadRequestException('User type is required');
+    }
+
     // Validate courses exist
-    for (const courseId of courses) {
-      await this.courseService.findById(courseId);
+    try {
+      for (const courseId of courses) {
+        if (!courseId || typeof courseId !== 'string') {
+          throw new BadRequestException(`Invalid course ID: ${courseId}`);
+        }
+        await this.courseService.findById(courseId);
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new BadRequestException(
+        `Course validation failed: ${errorMessage}`,
+      );
     }
 
     // Validate students exist
-    for (const studentId of students) {
-      await this.studentService.findOne(studentId);
+    try {
+      for (const studentId of students) {
+        if (!studentId || typeof studentId !== 'string') {
+          throw new BadRequestException(`Invalid student ID: ${studentId}`);
+        }
+        await this.studentService.findOne(studentId);
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new BadRequestException(
+        `Student validation failed: ${errorMessage}`,
+      );
     }
 
     // Validate organization if teacher
@@ -76,6 +112,15 @@ export class ClassService {
       throw new BadRequestException(
         `Cannot add ${students.length} students. Maximum allowed is ${maxStudents}`,
       );
+    }
+
+    // Validate date range
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (start >= end) {
+        throw new BadRequestException('End date must be after start date');
+      }
     }
 
     const classData: Partial<Class> = {
@@ -106,23 +151,29 @@ export class ClassService {
       metadata,
     };
 
-    const createdClass = await this.classRepository.create(classData);
+    try {
+      const createdClass = await this.classRepository.create(classData);
 
-    // Auto-enroll students in all courses and create progress records
-    for (const studentId of students) {
-      for (const courseId of courses) {
-        // Enroll student in course
-        await this.studentService.enrollInCourse(studentId, courseId);
+      // Auto-enroll students in all courses and create progress records
+      for (const studentId of students) {
+        for (const courseId of courses) {
+          // Enroll student in course
+          await this.studentService.enrollInCourse(studentId, courseId);
 
-        // Create progress record
-        await this.progressService.create({
-          studentId,
-          courseId,
-        });
+          // Create progress record
+          await this.progressService.create({
+            studentId,
+            courseId,
+          });
+        }
       }
-    }
 
-    return createdClass;
+      return createdClass;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error occurred';
+      throw new BadRequestException(`Failed to create class: ${errorMessage}`);
+    }
   }
 
   /**
@@ -219,6 +270,39 @@ export class ClassService {
 
     // Check and update active status
     await this.checkAndUpdateActiveStatus(id);
+
+    return updatedClass;
+  }
+
+  /**
+   * Update class settings
+   */
+  async updateSettings(
+    id: string,
+    updateSettingsDto: UpdateClassSettingsDto,
+  ): Promise<ClassDocument> {
+    const classData = await this.findById(id);
+
+    // Merge existing settings with new settings, ensuring all required properties are present
+    const currentSettings = classData.settings || {
+      allowStudentEnrollment: false,
+      requireApproval: true,
+      autoProgress: true,
+    };
+
+    const updatedSettings = {
+      allowStudentEnrollment:
+        updateSettingsDto.allowStudentEnrollment ??
+        currentSettings.allowStudentEnrollment,
+      requireApproval:
+        updateSettingsDto.requireApproval ?? currentSettings.requireApproval,
+      autoProgress:
+        updateSettingsDto.autoProgress ?? currentSettings.autoProgress,
+    };
+
+    const updatedClass = await this.classRepository.findByIdAndUpdate(id, {
+      settings: updatedSettings,
+    });
 
     return updatedClass;
   }

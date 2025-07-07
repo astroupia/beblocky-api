@@ -7,10 +7,12 @@ import {
   Param,
   Delete,
   Query,
+  Headers,
 } from '@nestjs/common';
 import { ClassService } from '../services/class.service';
 import { CreateClassDto } from '../dtos/create-class.dto';
 import { UpdateClassDto, ExtendClassDto } from '../dtos/update-class.dto';
+import { UpdateClassSettingsDto } from '../dtos/update-class-settings.dto';
 import { AddStudentDto, RemoveStudentDto } from '../dtos/add-student.dto';
 import { AddCourseDto, RemoveCourseDto } from '../dtos/add-course.dto';
 import { ClassUserType } from '../entities/class.entity';
@@ -22,14 +24,35 @@ export class ClassController {
   @Post()
   create(
     @Body() createClassDto: CreateClassDto,
-    @Query('userId') userId: string,
-    @Query('userType') userType: ClassUserType,
+    @Headers('x-user-id') userId: string,
+    @Headers('x-user-type') userType: ClassUserType,
   ) {
     return this.classService.create(createClassDto, userId, userType);
   }
 
   @Get()
-  findAll() {
+  findAll(
+    @Query('creatorId') creatorId?: string,
+    @Query('organizationId') organizationId?: string,
+    @Query('courseId') courseId?: string,
+    @Query('studentId') studentId?: string,
+    @Query('userType') userType?: string,
+  ) {
+    // If specific filters are provided, use them
+    if (creatorId) {
+      return this.classService.findByCreator(creatorId, userType || 'STUDENT');
+    }
+    if (organizationId) {
+      return this.classService.findByOrganization(organizationId);
+    }
+    if (courseId) {
+      return this.classService.findByCourse(courseId);
+    }
+    if (studentId) {
+      return this.classService.findByStudent(studentId);
+    }
+
+    // Default to all classes
     return this.classService.findAll();
   }
 
@@ -69,6 +92,14 @@ export class ClassController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateClassDto: UpdateClassDto) {
     return this.classService.update(id, updateClassDto);
+  }
+
+  @Patch(':id/settings')
+  updateSettings(
+    @Param('id') id: string,
+    @Body() updateSettingsDto: UpdateClassSettingsDto,
+  ) {
+    return this.classService.updateSettings(id, updateSettingsDto);
   }
 
   @Patch(':id/add-student')
