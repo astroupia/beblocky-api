@@ -56,3 +56,48 @@ export interface ICreateCourseWithContentDto {
   rating?: number;
   language?: string;
 }
+
+// Course Rating Types
+export enum RatingValue {
+  ONE = 1,
+  TWO = 2,
+  THREE = 3,
+  FOUR = 4,
+  FIVE = 5,
+}
+
+export interface ICourseRating {
+  courseId: Types.ObjectId;
+  userId: Types.ObjectId;
+  rating: RatingValue;
+  review?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ICreateCourseRatingDto {
+  rating: RatingValue;
+  review?: string;
+}
+
+export type IUpdateCourseRatingDto = Partial<ICreateCourseRatingDto>;
+
+export interface ICourseRatingResponse {
+  id: string;
+  courseId: string;
+  userId: string;
+  rating: RatingValue;
+  review?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ICourseRatingStats {
+  averageRating: number;
+  totalRatings: number;
+  ratingDistribution: {
+    [key: number]: number;
+  };
+  userRating?: RatingValue;
+  userReview?: string;
+}
