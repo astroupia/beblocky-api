@@ -1,5 +1,4 @@
 import {
-  IsMongoId,
   IsString,
   IsEmail,
   IsNumber,
@@ -15,6 +14,7 @@ import {
   PaymentStatus,
 } from '../../common/payment-provider.enums';
 import { Types } from 'mongoose';
+import { IsObjectId } from '../../common/decorators/is-object-id.decorator';
 
 export class Item {
   @IsString()
@@ -36,8 +36,8 @@ export class Item {
 }
 
 export class CreatePaymentDto {
-  @IsMongoId()
-  userId: Types.ObjectId;
+  @IsObjectId()
+  userId: string;
 
   @IsNumber()
   amount: number;

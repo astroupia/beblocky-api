@@ -3,6 +3,7 @@ import {
   forwardRef,
   Inject,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ProgressRepository } from '../repositories/progress.repository';
 import { Progress, ProgressDocument } from '../entities/progress.entity';
@@ -14,6 +15,10 @@ import { StudentService } from '../../student/services/student.service';
 import { CourseService } from '../../course/services/course.service';
 import { LessonService } from '../../lesson/services/lesson.service';
 import { Types } from 'mongoose';
+import {
+  createObjectId,
+  createObjectIdIfExists,
+} from '../../utils/object-id.utils';
 
 @Injectable()
 export class ProgressService {
@@ -48,8 +53,8 @@ export class ProgressService {
     await this.courseService.findById(courseId);
 
     const progressData: Partial<Progress> = {
-      studentId: new Types.ObjectId(studentId),
-      courseId: new Types.ObjectId(courseId),
+      studentId: createObjectId(studentId, 'studentId'),
+      courseId: createObjectId(courseId, 'courseId'),
       completedLessons: {},
       completionPercentage: 0,
       timeSpent: {},
@@ -61,7 +66,10 @@ export class ProgressService {
     };
 
     if (currentLesson) {
-      progressData.currentLesson = new Types.ObjectId(currentLesson);
+      progressData.currentLesson = createObjectId(
+        currentLesson,
+        'currentLesson',
+      );
     }
 
     return this.progressRepository.create(progressData);
@@ -124,14 +132,18 @@ export class ProgressService {
       entity.isActive = updateProgressDto.isActive;
     }
     if (updateProgressDto.studentId) {
-      entity.studentId = new Types.ObjectId(updateProgressDto.studentId);
+      entity.studentId = createObjectId(
+        updateProgressDto.studentId,
+        'studentId',
+      );
     }
     if (updateProgressDto.courseId) {
-      entity.courseId = new Types.ObjectId(updateProgressDto.courseId);
+      entity.courseId = createObjectId(updateProgressDto.courseId, 'courseId');
     }
     if (updateProgressDto.currentLesson) {
-      entity.currentLesson = new Types.ObjectId(
+      entity.currentLesson = createObjectId(
         updateProgressDto.currentLesson,
+        'currentLesson',
       );
     }
 

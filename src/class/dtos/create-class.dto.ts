@@ -46,8 +46,8 @@ export class CreateClassDto {
 
   @IsArray()
   @IsString({ each: true })
-  @IsNotEmpty()
-  courses: string[];
+  @IsOptional()
+  courses?: string[];
 
   @IsArray()
   @IsString({ each: true })

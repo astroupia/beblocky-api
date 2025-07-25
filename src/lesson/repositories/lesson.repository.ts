@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Lesson, LessonDocument } from '../entities/lesson.entity';
 import { CreateLessonDto } from '../dtos/create-lesson.dto';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class LessonRepository {
@@ -12,10 +13,7 @@ export class LessonRepository {
   ) {}
 
   async create(createLessonDto: CreateLessonDto): Promise<LessonDocument> {
-    const courseId =
-      typeof createLessonDto.courseId === 'string'
-        ? new Types.ObjectId(createLessonDto.courseId)
-        : createLessonDto.courseId;
+    const courseId = createObjectId(createLessonDto.courseId, 'courseId');
     const lesson = new this.lessonModel({
       title: createLessonDto.title,
       description: createLessonDto.description,
@@ -78,10 +76,8 @@ export class LessonRepository {
   }
 
   async findByCourseId(courseId: string): Promise<LessonDocument[]> {
-    const objectId =
-      typeof courseId === 'string' ? new Types.ObjectId(courseId) : courseId;
     return this.lessonModel
-      .find({ courseId: objectId })
+      .find({ courseId: createObjectId(courseId, 'courseId') })
       .populate('courseId')
       .populate('slides')
       .exec();

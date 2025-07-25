@@ -4,7 +4,6 @@ import {
   IsOptional,
   IsArray,
   ValidateNested,
-  IsMongoId,
   IsNumber,
   Min,
   Max,
@@ -13,6 +12,7 @@ import { Type } from 'class-transformer';
 import { Types } from 'mongoose';
 import { CreateUserDto } from '../../user/dtos/create-user.dto';
 import { Qualification, TimeSlot } from '../entities/teacher.entity';
+import { IsObjectId } from '../../common/decorators/is-object-id.decorator';
 
 export class QualificationDto implements Qualification {
   @IsString()
@@ -64,20 +64,20 @@ export class CreateTeacherDto extends CreateUserDto {
   rating?: number[];
 
   @IsArray()
-  @IsMongoId({ each: true })
+  @IsObjectId({ each: true })
   @IsOptional()
-  courses?: Types.ObjectId[];
+  courses?: string[];
 
-  @IsMongoId()
+  @IsObjectId()
   @IsNotEmpty()
-  organizationId: Types.ObjectId;
+  organizationId: string;
 
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
   languages?: string[];
 
-  @IsMongoId()
+  @IsObjectId()
   @IsOptional()
-  subscription?: Types.ObjectId;
+  subscription?: string;
 }

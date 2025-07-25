@@ -5,6 +5,7 @@ import {
   Certificate,
   CertificateDocument,
 } from '../entities/certificate.entity';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class CertificateRepository {
@@ -46,7 +47,7 @@ export class CertificateRepository {
 
   async findByStudent(studentId: string): Promise<CertificateDocument[]> {
     return this.certificateModel
-      .find({ studentId: new Types.ObjectId(studentId) })
+      .find({ studentId: createObjectId(studentId, 'studentId') })
       .populate('courseId', 'courseTitle')
       .populate('organizationId', 'name')
       .populate('issuedBy.userId', 'firstName lastName')
@@ -55,7 +56,7 @@ export class CertificateRepository {
 
   async findByCourse(courseId: string): Promise<CertificateDocument[]> {
     return this.certificateModel
-      .find({ courseId: new Types.ObjectId(courseId) })
+      .find({ courseId: createObjectId(courseId, 'courseId') })
       .populate('studentId', 'firstName lastName')
       .populate('organizationId', 'name')
       .populate('issuedBy.userId', 'firstName lastName')
@@ -66,7 +67,9 @@ export class CertificateRepository {
     organizationId: string,
   ): Promise<CertificateDocument[]> {
     return this.certificateModel
-      .find({ organizationId: new Types.ObjectId(organizationId) })
+      .find({
+        organizationId: createObjectId(organizationId, 'organizationId'),
+      })
       .populate('studentId', 'firstName lastName')
       .populate('courseId', 'courseTitle')
       .populate('issuedBy.userId', 'firstName lastName')
@@ -79,7 +82,7 @@ export class CertificateRepository {
   ): Promise<CertificateDocument[]> {
     return this.certificateModel
       .find({
-        'issuedBy.userId': new Types.ObjectId(issuerId),
+        'issuedBy.userId': createObjectId(issuerId, 'issuerId'),
         'issuedBy.userType': issuerType,
       })
       .populate('studentId', 'firstName lastName')
@@ -94,8 +97,8 @@ export class CertificateRepository {
   ): Promise<CertificateDocument | null> {
     return this.certificateModel
       .findOne({
-        studentId: new Types.ObjectId(studentId),
-        courseId: new Types.ObjectId(courseId),
+        studentId: createObjectId(studentId, 'studentId'),
+        courseId: createObjectId(courseId, 'courseId'),
       })
       .exec();
   }

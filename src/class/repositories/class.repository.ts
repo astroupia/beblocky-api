@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Class, ClassDocument } from '../entities/class.entity';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class ClassRepository {
@@ -33,7 +34,7 @@ export class ClassRepository {
   ): Promise<ClassDocument[]> {
     return this.classModel
       .find({
-        'createdBy.userId': new Types.ObjectId(userId),
+        'createdBy.userId': createObjectId(userId, 'userId'),
         'createdBy.userType': userType,
       })
       .populate('courses', 'courseTitle')
@@ -44,7 +45,7 @@ export class ClassRepository {
 
   async findByCourse(courseId: string): Promise<ClassDocument[]> {
     return this.classModel
-      .find({ courses: new Types.ObjectId(courseId) })
+      .find({ courses: createObjectId(courseId, 'courseId') })
       .populate('students', 'firstName lastName')
       .populate('createdBy.userId', 'firstName lastName')
       .exec();
@@ -52,7 +53,7 @@ export class ClassRepository {
 
   async findByStudent(studentId: string): Promise<ClassDocument[]> {
     return this.classModel
-      .find({ students: new Types.ObjectId(studentId) })
+      .find({ students: createObjectId(studentId, 'studentId') })
       .populate('courses', 'courseTitle')
       .populate('createdBy.userId', 'firstName lastName')
       .populate('organizationId', 'name')
@@ -61,7 +62,9 @@ export class ClassRepository {
 
   async findByOrganization(organizationId: string): Promise<ClassDocument[]> {
     return this.classModel
-      .find({ organizationId: new Types.ObjectId(organizationId) })
+      .find({
+        organizationId: createObjectId(organizationId, 'organizationId'),
+      })
       .populate('courses', 'courseTitle')
       .populate('students', 'firstName lastName')
       .populate('createdBy.userId', 'firstName lastName')
@@ -93,7 +96,7 @@ export class ClassRepository {
     const classData = await this.classModel
       .findByIdAndUpdate(
         classId,
-        { $addToSet: { students: new Types.ObjectId(studentId) } },
+        { $addToSet: { students: createObjectId(studentId, 'studentId') } },
         { new: true },
       )
       .exec();
@@ -110,7 +113,7 @@ export class ClassRepository {
     const classData = await this.classModel
       .findByIdAndUpdate(
         classId,
-        { $pull: { students: new Types.ObjectId(studentId) } },
+        { $pull: { students: createObjectId(studentId, 'studentId') } },
         { new: true },
       )
       .exec();
@@ -124,7 +127,7 @@ export class ClassRepository {
     const classData = await this.classModel
       .findByIdAndUpdate(
         classId,
-        { $addToSet: { courses: new Types.ObjectId(courseId) } },
+        { $addToSet: { courses: createObjectId(courseId, 'courseId') } },
         { new: true },
       )
       .exec();
@@ -141,7 +144,7 @@ export class ClassRepository {
     const classData = await this.classModel
       .findByIdAndUpdate(
         classId,
-        { $pull: { courses: new Types.ObjectId(courseId) } },
+        { $pull: { courses: createObjectId(courseId, 'courseId') } },
         { new: true },
       )
       .exec();

@@ -44,7 +44,7 @@ export class CourseService {
     // 2. Create Lessons
     for (const lessonDto of dto.lessons || []) {
       const lesson = await this.lessonService.create({
-        courseId: course._id as Types.ObjectId,
+        courseId: (course._id as Types.ObjectId).toString(),
         title: lessonDto.title,
         description: lessonDto.description,
         duration: lessonDto.duration,
@@ -84,7 +84,7 @@ export class CourseService {
 
       // 4. Update the lesson document with its slides
       await this.lessonService.update(String(lesson._id), {
-        slides: lessonSlideIds,
+        slides: lessonSlideIds.map((id) => id.toString()),
       });
     }
 

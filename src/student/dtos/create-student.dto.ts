@@ -3,7 +3,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsDate,
-  IsMongoId,
   IsNumber,
   ValidateNested,
   IsEnum,
@@ -12,6 +11,7 @@ import { Type } from 'class-transformer';
 import { CreateUserDto } from '../../user/dtos/create-user.dto';
 import { Gender } from '../entities/student.entity';
 import { Types } from 'mongoose';
+import { IsObjectId } from '../../common/decorators/is-object-id.decorator';
 
 export class EmergencyContactDto {
   @IsString()
@@ -41,17 +41,17 @@ export class CreateStudentDto extends CreateUserDto {
   @IsOptional()
   gender?: Gender;
 
-  @IsMongoId()
+  @IsObjectId()
   @IsOptional()
-  schoolId?: Types.ObjectId;
+  schoolId?: string;
 
-  @IsMongoId()
+  @IsObjectId()
   @IsOptional()
-  parentId?: Types.ObjectId;
+  parentId?: string;
 
-  @IsMongoId({ each: true })
+  @IsObjectId({ each: true })
   @IsOptional()
-  enrolledCourses?: Types.ObjectId[];
+  enrolledCourses?: string[];
 
   @IsNumber()
   @IsOptional()

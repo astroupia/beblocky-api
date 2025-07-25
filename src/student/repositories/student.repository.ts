@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Student, StudentDocument } from '../entities/student.entity';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class StudentRepository {
@@ -11,7 +12,7 @@ export class StudentRepository {
   ) {}
 
   private convertToObjectId(id: string | Types.ObjectId): Types.ObjectId {
-    return typeof id === 'string' ? new Types.ObjectId(id) : id;
+    return typeof id === 'string' ? createObjectId(id, 'id') : id;
   }
 
   private convertArrayToObjectIds(
@@ -95,7 +96,9 @@ export class StudentRepository {
     const student = await this.studentModel
       .findByIdAndUpdate(
         studentId,
-        { $addToSet: { enrolledCourses: new Types.ObjectId(courseId) } },
+        {
+          $addToSet: { enrolledCourses: createObjectId(courseId, 'courseId') },
+        },
         { new: true },
       )
       .exec();
@@ -112,7 +115,7 @@ export class StudentRepository {
     const student = await this.studentModel
       .findByIdAndUpdate(
         studentId,
-        { $pull: { enrolledCourses: new Types.ObjectId(courseId) } },
+        { $pull: { enrolledCourses: createObjectId(courseId, 'courseId') } },
         { new: true },
       )
       .exec();

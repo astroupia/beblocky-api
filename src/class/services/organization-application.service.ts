@@ -15,6 +15,7 @@ import { ReviewApplicationDto } from '../dtos/review-application.dto';
 import { StudentService } from '../../student/services/student.service';
 import { OrganizationService } from '../../organization/services/organization.service';
 import { Types } from 'mongoose';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class OrganizationApplicationService {
@@ -52,8 +53,8 @@ export class OrganizationApplicationService {
     await this.organizationService.findById(organizationId);
 
     const applicationData: Partial<OrganizationApplication> = {
-      studentId: new Types.ObjectId(studentId),
-      organizationId: new Types.ObjectId(organizationId),
+      studentId: createObjectId(studentId, 'studentId'),
+      organizationId: createObjectId(organizationId, 'organizationId'),
       status: ApplicationStatus.PENDING,
       appliedAt: new Date(),
     };
@@ -128,7 +129,7 @@ export class OrganizationApplicationService {
     const updateData: Partial<OrganizationApplication> = {
       status,
       reviewedAt: new Date(),
-      reviewedBy: new Types.ObjectId(reviewerId),
+      reviewedBy: createObjectId(reviewerId, 'reviewerId'),
       notes,
       rejectionReason,
     };

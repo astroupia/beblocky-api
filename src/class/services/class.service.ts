@@ -16,6 +16,7 @@ import { CourseService } from '../../course/services/course.service';
 import { OrganizationService } from '../../organization/services/organization.service';
 import { ProgressService } from '../../progress/services/progress.service';
 import { Types } from 'mongoose';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class ClassService {
@@ -42,7 +43,7 @@ export class ClassService {
     const {
       className,
       description,
-      courses,
+      courses = [],
       students = [],
       maxStudents,
       startDate,
@@ -50,11 +51,6 @@ export class ClassService {
       settings,
       metadata,
     } = createClassDto;
-
-    // Validate required fields
-    if (!courses || !Array.isArray(courses) || courses.length === 0) {
-      throw new BadRequestException('At least one course is required');
-    }
 
     if (!userId) {
       throw new BadRequestException('User ID is required');
@@ -127,12 +123,12 @@ export class ClassService {
       className,
       description,
       createdBy: {
-        userId: new Types.ObjectId(userId),
+        userId: createObjectId(userId, 'userId'),
         userType,
       },
       organizationId,
-      courses: courses.map((id) => new Types.ObjectId(id)),
-      students: students.map((id) => new Types.ObjectId(id)),
+      courses: courses.map((id) => createObjectId(id, 'courseId')),
+      students: students.map((id) => createObjectId(id, 'studentId')),
       maxStudents,
       isActive: true,
       startDate: startDate ? new Date(startDate) : undefined,
@@ -154,17 +150,19 @@ export class ClassService {
     try {
       const createdClass = await this.classRepository.create(classData);
 
-      // Auto-enroll students in all courses and create progress records
-      for (const studentId of students) {
-        for (const courseId of courses) {
-          // Enroll student in course
-          await this.studentService.enrollInCourse(studentId, courseId);
+      // Auto-enroll students in all courses and create progress records (only if courses exist)
+      if (courses.length > 0 && students.length > 0) {
+        for (const studentId of students) {
+          for (const courseId of courses) {
+            // Enroll student in course
+            await this.studentService.enrollInCourse(studentId, courseId);
 
-          // Create progress record
-          await this.progressService.create({
-            studentId,
-            courseId,
-          });
+            // Create progress record
+            await this.progressService.create({
+              studentId,
+              courseId,
+            });
+          }
         }
       }
 

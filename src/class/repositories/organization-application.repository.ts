@@ -5,6 +5,7 @@ import {
   OrganizationApplication,
   OrganizationApplicationDocument,
 } from '../entities/organization-application.entity';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class OrganizationApplicationRepository {
@@ -36,7 +37,7 @@ export class OrganizationApplicationRepository {
     studentId: string,
   ): Promise<OrganizationApplicationDocument[]> {
     return this.applicationModel
-      .find({ studentId: new Types.ObjectId(studentId) })
+      .find({ studentId: createObjectId(studentId, 'studentId') })
       .populate('organizationId', 'name')
       .populate('reviewedBy', 'firstName lastName')
       .exec();
@@ -46,7 +47,9 @@ export class OrganizationApplicationRepository {
     organizationId: string,
   ): Promise<OrganizationApplicationDocument[]> {
     return this.applicationModel
-      .find({ organizationId: new Types.ObjectId(organizationId) })
+      .find({
+        organizationId: createObjectId(organizationId, 'organizationId'),
+      })
       .populate('studentId', 'firstName lastName')
       .populate('reviewedBy', 'firstName lastName')
       .exec();
@@ -58,8 +61,8 @@ export class OrganizationApplicationRepository {
   ): Promise<OrganizationApplicationDocument | null> {
     return this.applicationModel
       .findOne({
-        studentId: new Types.ObjectId(studentId),
-        organizationId: new Types.ObjectId(organizationId),
+        studentId: createObjectId(studentId, 'studentId'),
+        organizationId: createObjectId(organizationId, 'organizationId'),
       })
       .exec();
   }
@@ -108,7 +111,9 @@ export class OrganizationApplicationRepository {
   }> {
     const stats = await this.applicationModel.aggregate([
       {
-        $match: { organizationId: new Types.ObjectId(organizationId) },
+        $match: {
+          organizationId: createObjectId(organizationId, 'organizationId'),
+        },
       },
       {
         $group: {

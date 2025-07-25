@@ -19,6 +19,7 @@ import { ProgressService } from '../../progress/services/progress.service';
 import { OrganizationService } from '../../organization/services/organization.service';
 import { CloudinaryService } from '../../cloudinary/services/cloudinary.service';
 import { Types } from 'mongoose';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class CertificateService {
@@ -172,14 +173,14 @@ export class CertificateService {
     // Create certificate record
     const certificate = await this.certificateRepository.create({
       certificateId,
-      studentId: new Types.ObjectId(issueData.studentId),
-      courseId: new Types.ObjectId(issueData.courseId),
-      progressId: new Types.ObjectId(issueData.progressId),
+      studentId: createObjectId(issueData.studentId, 'studentId'),
+      courseId: createObjectId(issueData.courseId, 'courseId'),
+      progressId: createObjectId(issueData.progressId, 'progressId'),
       organizationId: issueData.organizationId
-        ? new Types.ObjectId(issueData.organizationId)
+        ? createObjectId(issueData.organizationId, 'organizationId')
         : undefined,
       issuedBy: {
-        userId: new Types.ObjectId(issuerId),
+        userId: createObjectId(issuerId, 'issuerId'),
         userType: issuerType,
       },
       issuedAt: new Date(),

@@ -4,24 +4,33 @@ import { CreateTeacherDto } from '../dtos/create-teacher.dto';
 import { UpdateTeacherDto } from '../dtos/update-teacher.dto';
 import { Teacher, TeacherDocument } from '../entities/teacher.entity';
 import { Types } from 'mongoose';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class TeacherService {
   constructor(private readonly teacherRepository: TeacherRepository) {}
 
   private mapDtoToEntity(dto: Partial<CreateTeacherDto>): Partial<Teacher> {
-    const entity: Partial<Teacher> = { ...dto };
+    const entity: Partial<Teacher> = {
+      ...dto,
+      organizationId: undefined,
+      courses: undefined,
+      subscription: undefined,
+    };
 
     if (dto.organizationId) {
-      entity.organizationId = new Types.ObjectId(dto.organizationId);
+      entity.organizationId = createObjectId(
+        dto.organizationId,
+        'organizationId',
+      );
     }
 
     if (dto.courses) {
-      entity.courses = dto.courses.map((id) => new Types.ObjectId(id));
+      entity.courses = dto.courses.map((id) => createObjectId(id, 'courseId'));
     }
 
     if (dto.subscription) {
-      entity.subscription = new Types.ObjectId(dto.subscription);
+      entity.subscription = createObjectId(dto.subscription, 'subscription');
     }
 
     return entity;

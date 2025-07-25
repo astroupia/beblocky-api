@@ -5,6 +5,7 @@ import { PaymentDocument } from '../entities/payment.entity';
 import { ResponseStatusDto } from '../dto/response-status.dto';
 import { Types } from 'mongoose';
 import { PaymentStatus } from '../../common/payment-provider.enums';
+import { createObjectId } from '../../utils/object-id.utils';
 @Injectable()
 export class PaymentRepository {
   constructor(
@@ -123,13 +124,9 @@ export class PaymentRepository {
    * const payments = await paymentRepository.findByUserId('64b9f2a3fc13ae1d3c000001');
    */
   async findByUserId(userId: string): Promise<PaymentDocument[]> {
-    if (!Types.ObjectId.isValid(userId)) {
-      throw new Error('Invalid user ID format');
-    }
-
     return this.paymentModel
       .find({
-        userId: new Types.ObjectId(userId),
+        userId: createObjectId(userId, 'userId'),
       })
       .exec();
   }

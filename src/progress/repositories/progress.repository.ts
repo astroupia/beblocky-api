@@ -1,7 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Progress, ProgressDocument } from '../entities/progress.entity';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class ProgressRepository {
@@ -33,8 +38,8 @@ export class ProgressRepository {
   ): Promise<ProgressDocument> {
     const progress = await this.progressModel
       .findOne({
-        studentId: new Types.ObjectId(studentId),
-        courseId: new Types.ObjectId(courseId),
+        studentId: createObjectId(studentId, 'studentId'),
+        courseId: createObjectId(courseId, 'courseId'),
       })
       .exec();
     if (!progress) {
@@ -47,14 +52,14 @@ export class ProgressRepository {
 
   async findByStudentId(studentId: string): Promise<ProgressDocument[]> {
     return this.progressModel
-      .find({ studentId: new Types.ObjectId(studentId) })
+      .find({ studentId: createObjectId(studentId, 'studentId') })
       .populate('courseId', 'courseTitle')
       .exec();
   }
 
   async findByCourseId(courseId: string): Promise<ProgressDocument[]> {
     return this.progressModel
-      .find({ courseId: new Types.ObjectId(courseId) })
+      .find({ courseId: createObjectId(courseId, 'courseId') })
       .populate('studentId', 'firstName lastName')
       .exec();
   }
@@ -149,8 +154,8 @@ export class ProgressRepository {
   async exists(studentId: string, courseId: string): Promise<boolean> {
     const count = await this.progressModel
       .countDocuments({
-        studentId: new Types.ObjectId(studentId),
-        courseId: new Types.ObjectId(courseId),
+        studentId: createObjectId(studentId, 'studentId'),
+        courseId: createObjectId(courseId, 'courseId'),
       })
       .exec();
     return count > 0;

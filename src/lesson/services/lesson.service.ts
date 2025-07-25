@@ -4,6 +4,8 @@ import { CreateLessonDto } from '../dtos/create-lesson.dto';
 import { Lesson, LessonDocument } from '../entities/lesson.entity';
 import { CourseService } from '../../course/services/course.service';
 import { SlideService } from '../../slide/services/slide.service';
+import { createObjectId } from '../../utils/object-id.utils';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class LessonService {
@@ -25,10 +27,7 @@ export class LessonService {
     return this.lessonRepository.findById(id);
   }
 
-  async update(
-    id: string,
-    updateData: Partial<Lesson>,
-  ): Promise<LessonDocument> {
+  async update(id: string, updateData: any): Promise<LessonDocument> {
     const isMongoOperator = Object.keys(updateData).some((key) =>
       ['$pull', '$addToSet', '$push'].includes(key),
     );
@@ -36,7 +35,23 @@ export class LessonService {
       return this.lessonRepository.updateRaw(id, updateData);
     }
 
-    return this.lessonRepository.update(id, updateData);
+    // Convert string IDs to ObjectIds if they exist
+    const convertedData: Partial<Lesson> = { ...updateData };
+
+    if (updateData.courseId && typeof updateData.courseId === 'string') {
+      convertedData.courseId = createObjectId(updateData.courseId, 'courseId');
+    }
+
+    if (updateData.slides && Array.isArray(updateData.slides)) {
+      convertedData.slides = updateData.slides.map(
+        (slideId: string | Types.ObjectId) =>
+          typeof slideId === 'string'
+            ? createObjectId(slideId, 'slideId')
+            : slideId,
+      );
+    }
+
+    return this.lessonRepository.update(id, convertedData);
   }
 
   async delete(id: string): Promise<void> {
