@@ -58,25 +58,19 @@ export interface ICreateCourseWithContentDto {
 }
 
 // Course Rating Types
-export enum RatingValue {
-  ONE = 1,
-  TWO = 2,
-  THREE = 3,
-  FOUR = 4,
-  FIVE = 5,
-}
+// Rating values are now simple numbers (1-5) instead of enum
 
 export interface ICourseRating {
   courseId: Types.ObjectId;
   userId: string; // String ID from better-auth
-  rating: RatingValue;
+  rating: number; // Use number instead of RatingValue enum
   review?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface ICreateCourseRatingDto {
-  rating: RatingValue;
+  rating: number; // Use number instead of RatingValue enum
   review?: string;
 }
 
@@ -86,7 +80,7 @@ export interface ICourseRatingResponse {
   id: string;
   courseId: string;
   userId: string;
-  rating: RatingValue;
+  rating: number; // Use number instead of RatingValue enum
   review?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -98,6 +92,6 @@ export interface ICourseRatingStats {
   ratingDistribution: {
     [key: number]: number;
   };
-  userRating?: RatingValue;
+  userRating?: number; // Use number instead of RatingValue enum
   userReview?: string;
 }

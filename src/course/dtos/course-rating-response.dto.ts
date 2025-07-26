@@ -1,14 +1,10 @@
-import {
-  RatingValue,
-  ICourseRatingResponse,
-  ICourseRatingStats,
-} from '../../types';
+import { ICourseRatingResponse, ICourseRatingStats } from '../../types';
 
 export class CourseRatingResponseDto implements ICourseRatingResponse {
   id: string;
   courseId: string;
   userId: string;
-  rating: RatingValue;
+  rating: number; // Use number instead of RatingValue enum
   review?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -20,6 +16,6 @@ export class CourseRatingStatsDto implements ICourseRatingStats {
   ratingDistribution: {
     [key: number]: number;
   };
-  userRating?: RatingValue;
+  userRating?: number; // Use number instead of RatingValue enum
   userReview?: string;
 }

@@ -6,14 +6,14 @@ import {
   Min,
   Max,
 } from 'class-validator';
-import { RatingValue, ICreateCourseRatingDto } from '../../types';
+import { ICreateCourseRatingDto } from '../../types';
 
 export class CreateCourseRatingDto implements ICreateCourseRatingDto {
   @IsNumber()
   @Min(1)
   @Max(5)
   @IsNotEmpty()
-  rating: RatingValue;
+  rating: number;
 
   @IsString()
   @IsOptional()

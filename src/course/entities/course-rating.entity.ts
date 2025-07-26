@@ -1,13 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { RatingValue, ICourseRating } from '../../types';
+import { ICourseRating } from '../../types';
 
 // Domain entity
 export interface CourseRating
   extends Omit<ICourseRating, 'createdAt' | 'updatedAt'> {
   courseId: Types.ObjectId;
   userId: string; // String ID from better-auth
-  rating: RatingValue;
+  rating: number; // Use number instead of RatingValue enum
   review?: string;
 }
 
@@ -22,12 +22,12 @@ export class CourseRatingSchemaClass implements CourseRating {
 
   @Prop({
     type: Number,
-    enum: Object.values(RatingValue),
+    enum: [1, 2, 3, 4, 5],
     required: true,
     min: 1,
     max: 5,
   })
-  rating: RatingValue;
+  rating: number;
 
   @Prop({ type: String, maxlength: 1000 })
   review?: string;
