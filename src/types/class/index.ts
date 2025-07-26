@@ -21,7 +21,7 @@ export interface IClassMetadata {
 }
 
 export interface IClassCreator {
-  userId: Types.ObjectId;
+  userId: string; // String ID from better-auth
   userType: ClassUserType;
 }
 

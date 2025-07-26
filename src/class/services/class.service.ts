@@ -17,6 +17,7 @@ import { OrganizationService } from '../../organization/services/organization.se
 import { ProgressService } from '../../progress/services/progress.service';
 import { Types } from 'mongoose';
 import { createObjectId } from '../../utils/object-id.utils';
+import { createUserId } from '../../utils/user-id.utils';
 
 @Injectable()
 export class ClassService {
@@ -123,7 +124,7 @@ export class ClassService {
       className,
       description,
       createdBy: {
-        userId: createObjectId(userId, 'userId'),
+        userId: createUserId(userId, 'userId'),
         userType,
       },
       organizationId,

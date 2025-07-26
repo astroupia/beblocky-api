@@ -7,7 +7,7 @@ export enum AdminAccessLevel {
 }
 
 export interface IAdmin {
-  userId: Types.ObjectId;
+  userId: string; // String ID from better-auth
   accessLevel: AdminAccessLevel;
   managedOrganizations: Types.ObjectId[];
   createdAt: Date;

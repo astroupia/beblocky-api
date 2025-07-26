@@ -24,7 +24,7 @@ export enum BillingCycle {
 
 // Domain entity
 export class Subscription {
-  userId: Types.ObjectId;
+  userId: string; // String ID from better-auth
   planName: SubscriptionPlan;
   status: SubscriptionStatus;
   startDate: Date;
@@ -44,8 +44,8 @@ export class Subscription {
 // Mongoose schema class
 @Schema({ timestamps: true })
 export class SubscriptionSchemaClass {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId: Types.ObjectId;
+  @Prop({ type: String, ref: 'User', required: true })
+  userId: string;
 
   @Prop({
     type: String,

@@ -23,7 +23,7 @@ export interface ClassMetadata {
 
 // Creator interface
 export interface ClassCreator {
-  userId: Types.ObjectId;
+  userId: string; // String ID from better-auth
   userType: ClassUserType;
 }
 
@@ -54,7 +54,7 @@ export class ClassSchemaClass {
 
   @Prop({
     type: {
-      userId: { type: Types.ObjectId, ref: 'User', required: true },
+      userId: { type: String, ref: 'User', required: true },
       userType: {
         type: String,
         enum: Object.values(ClassUserType),

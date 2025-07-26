@@ -8,6 +8,7 @@ import { PaymentStatus } from 'src/common/payment-provider.enums';
 import { ResponseStatusDto } from '../dto/response-status.dto';
 import { PaymentDocument } from '../entities/payment.entity';
 import { createObjectId } from '../../utils/object-id.utils';
+import { createUserId } from '../../utils/user-id.utils';
 import { paymentLogger } from 'src/utils/logger';
 
 @Injectable()
@@ -57,7 +58,7 @@ export class PaymentService {
 
           const paymentToSave = {
             ...createPaymentDto,
-            userId: createObjectId(createPaymentDto.userId, 'userId'),
+            userId: createUserId(createPaymentDto.userId, 'userId'),
             sessionId: result.data.sessionId,
             transactionStatus: PaymentStatus.PENDING,
           };
@@ -84,7 +85,7 @@ export class PaymentService {
 
       const fallbackSave = {
         ...createPaymentDto,
-        userId: createObjectId(createPaymentDto.userId, 'userId'),
+        userId: createUserId(createPaymentDto.userId, 'userId'),
         sessionId: lastError?.data?.sessionId || null,
         transactionStatus: PaymentStatus.FAILED,
       };

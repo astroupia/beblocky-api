@@ -20,6 +20,7 @@ import { OrganizationService } from '../../organization/services/organization.se
 import { CloudinaryService } from '../../cloudinary/services/cloudinary.service';
 import { Types } from 'mongoose';
 import { createObjectId } from '../../utils/object-id.utils';
+import { createUserId } from '../../utils/user-id.utils';
 
 @Injectable()
 export class CertificateService {
@@ -180,7 +181,7 @@ export class CertificateService {
         ? createObjectId(issueData.organizationId, 'organizationId')
         : undefined,
       issuedBy: {
-        userId: createObjectId(issuerId, 'issuerId'),
+        userId: createUserId(issuerId, 'issuerId'),
         userType: issuerType,
       },
       issuedAt: new Date(),

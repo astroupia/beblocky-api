@@ -15,7 +15,7 @@ export interface IAddress {
 }
 
 export interface IParent {
-  userId: Types.ObjectId;
+  userId: string; // String ID from better-auth
   children: Types.ObjectId[];
   relationship: RelationshipType;
   phoneNumber: string;

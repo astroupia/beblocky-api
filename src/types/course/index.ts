@@ -68,7 +68,7 @@ export enum RatingValue {
 
 export interface ICourseRating {
   courseId: Types.ObjectId;
-  userId: Types.ObjectId;
+  userId: string; // String ID from better-auth
   rating: RatingValue;
   review?: string;
   createdAt: Date;

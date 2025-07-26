@@ -22,7 +22,7 @@ export enum BillingCycle {
 }
 
 export interface ISubscription {
-  userId: Types.ObjectId;
+  userId: string; // String ID from better-auth
   planName: SubscriptionPlan;
   status: SubscriptionStatus;
   startDate: Date;
@@ -42,7 +42,7 @@ export interface ISubscription {
 }
 
 export interface ICreateSubscriptionDto {
-  userId: Types.ObjectId;
+  userId: string; // String ID from better-auth
   planName: SubscriptionPlan;
   status?: SubscriptionStatus;
   startDate: Date;

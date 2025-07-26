@@ -6,6 +6,7 @@ import {
   CourseRatingDocument,
 } from '../entities/course-rating.entity';
 import { createObjectId } from '../../utils/object-id.utils';
+import { createUserId } from '../../utils/user-id.utils';
 import { ICourseRating } from '../../types';
 
 @Injectable()
@@ -23,7 +24,7 @@ export class CourseRatingRepository {
   }): Promise<CourseRatingDocument> {
     const courseRating = new this.courseRatingModel({
       courseId: createObjectId(data.courseId, 'courseId'),
-      userId: createObjectId(data.userId, 'userId'),
+      userId: createUserId(data.userId, 'userId'),
       rating: data.rating,
       review: data.review,
     });
@@ -45,7 +46,7 @@ export class CourseRatingRepository {
     return this.courseRatingModel
       .findOne({
         courseId: createObjectId(courseId, 'courseId'),
-        userId: createObjectId(userId, 'userId'),
+        userId: createUserId(userId, 'userId'),
       })
       .exec();
   }
@@ -59,7 +60,7 @@ export class CourseRatingRepository {
 
   async findByUserId(userId: string): Promise<CourseRatingDocument[]> {
     return this.courseRatingModel
-      .find({ userId: createObjectId(userId, 'userId') })
+      .find({ userId: createUserId(userId, 'userId') })
       .populate('courseId', 'courseTitle')
       .exec();
   }
@@ -137,7 +138,7 @@ export class CourseRatingRepository {
     return this.courseRatingModel
       .findOne({
         courseId: createObjectId(courseId, 'courseId'),
-        userId: createObjectId(userId, 'userId'),
+        userId: createUserId(userId, 'userId'),
       })
       .exec();
   }

@@ -16,10 +16,12 @@ import {
   SubscriptionStatus,
   BillingCycle,
 } from '../entities/subscription.entity';
+import { IsObjectId } from '../../common/decorators/is-object-id.decorator';
 
 export class CreateSubscriptionDto {
+  @IsString()
   @IsNotEmpty()
-  userId: Types.ObjectId;
+  userId: string; // String ID from better-auth
 
   @IsEnum(SubscriptionPlan)
   @IsNotEmpty()

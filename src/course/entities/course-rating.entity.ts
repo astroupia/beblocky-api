@@ -6,7 +6,7 @@ import { RatingValue, ICourseRating } from '../../types';
 export interface CourseRating
   extends Omit<ICourseRating, 'createdAt' | 'updatedAt'> {
   courseId: Types.ObjectId;
-  userId: Types.ObjectId;
+  userId: string; // String ID from better-auth
   rating: RatingValue;
   review?: string;
 }
@@ -17,8 +17,8 @@ export class CourseRatingSchemaClass implements CourseRating {
   @Prop({ type: Types.ObjectId, ref: 'Course', required: true })
   courseId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId: Types.ObjectId;
+  @Prop({ type: String, ref: 'User', required: true })
+  userId: string;
 
   @Prop({
     type: Number,
