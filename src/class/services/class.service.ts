@@ -15,6 +15,7 @@ import { StudentService } from '../../student/services/student.service';
 import { CourseService } from '../../course/services/course.service';
 import { OrganizationService } from '../../organization/services/organization.service';
 import { ProgressService } from '../../progress/services/progress.service';
+import { TeacherService } from '../../teacher/services/teacher.service';
 import { Types } from 'mongoose';
 import { createObjectId } from '../../utils/object-id.utils';
 import { createUserId } from '../../utils/user-id.utils';
@@ -31,6 +32,8 @@ export class ClassService {
     private readonly organizationService: OrganizationService,
     @Inject(forwardRef(() => ProgressService))
     private readonly progressService: ProgressService,
+    @Inject(forwardRef(() => TeacherService))
+    private readonly teacherService: TeacherService,
   ) {}
 
   /**
@@ -96,12 +99,27 @@ export class ClassService {
     // Validate organization if teacher
     let organizationId: Types.ObjectId | undefined;
     if (userType === ClassUserType.TEACHER) {
-      // For teachers, we need to get their organization
-      // This would typically come from the teacher's profile
-      // For now, we'll require it to be passed or get it from teacher service
-      throw new BadRequestException(
-        'Organization ID is required for teacher-created classes',
-      );
+      // For teachers, we can either:
+      // 1. Get organization ID from the payload (if provided)
+      // 2. Get it from the teacher's profile
+      // 3. Allow classes without organization (for now, we'll allow this)
+
+      // If organizationId is provided in the payload, validate it
+      if (createClassDto.organizationId) {
+        try {
+          await this.organizationService.findById(
+            createClassDto.organizationId,
+          );
+          organizationId = createObjectId(
+            createClassDto.organizationId,
+            'organizationId',
+          );
+        } catch (error) {
+          throw new BadRequestException('Invalid organization ID provided');
+        }
+      }
+      // If no organizationId is provided, we'll allow the class to be created without it
+      // This can be updated later to automatically fetch from teacher profile
     }
 
     // Check max students limit

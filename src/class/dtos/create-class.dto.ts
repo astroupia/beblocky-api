@@ -9,6 +9,7 @@ import {
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { IsObjectId } from '../../common/decorators/is-object-id.decorator';
 
 export class ClassSettingsDto {
   @IsOptional()
@@ -43,6 +44,10 @@ export class CreateClassDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @IsObjectId()
+  @IsOptional()
+  organizationId?: string;
 
   @IsArray()
   @IsString({ each: true })

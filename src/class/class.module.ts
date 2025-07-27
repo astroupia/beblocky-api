@@ -12,6 +12,7 @@ import { StudentModule } from '../student/student.module';
 import { CourseModule } from '../course/course.module';
 import { OrganizationModule } from '../organization/organization.module';
 import { ProgressModule } from '../progress/progress.module';
+import { TeacherModule } from '../teacher/teacher.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ProgressModule } from '../progress/progress.module';
     forwardRef(() => CourseModule),
     forwardRef(() => OrganizationModule),
     forwardRef(() => ProgressModule),
+    forwardRef(() => TeacherModule),
   ],
   controllers: [ClassController, OrganizationApplicationController],
   providers: [
