@@ -1,5 +1,4 @@
 import { Types } from 'mongoose';
-import { ICreateLessonDto, ICreateSlideDto } from '..';
 
 export enum CourseSubscriptionType {
   FREE = 'free',
@@ -49,8 +48,8 @@ export interface ICreateCourseWithContentDto {
   courseTitle: string;
   courseDescription: string;
   courseLanguage: string;
-  lessons?: ICreateLessonDto[];
-  slides?: ICreateSlideDto[];
+  lessons?: any[]; // Simplified to avoid import conflicts
+  slides?: any[]; // Simplified to avoid import conflicts
   subType?: CourseSubscriptionType;
   status?: CourseStatus;
   rating?: number;
@@ -95,3 +94,12 @@ export interface ICourseRatingStats {
   userRating?: number; // Use number instead of RatingValue enum
   userReview?: string;
 }
+
+// Export actual DTOs and entities from the course module
+export * from '../../course/entities/course.entity';
+export * from '../../course/entities/course-rating.entity';
+export * from '../../course/dtos/create-course.dto';
+export * from '../../course/dtos/create-course-with-content.dto';
+export * from '../../course/dtos/create-course-rating.dto';
+export * from '../../course/dtos/update-course-rating.dto';
+export * from '../../course/dtos/course-rating-response.dto';

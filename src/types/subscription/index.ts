@@ -59,3 +59,8 @@ export interface ICreateSubscriptionDto {
 }
 
 export type IUpdateSubscriptionDto = Partial<ICreateSubscriptionDto>;
+
+// Export actual DTOs and entities from the subscription module
+export * from '../../subscription/entities/subscription.entity';
+export * from '../../subscription/dtos/create-subscription.dto';
+export * from '../../subscription/dtos/update-subscription.dto';

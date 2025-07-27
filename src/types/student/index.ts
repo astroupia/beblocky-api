@@ -14,6 +14,7 @@ export interface IEmergencyContact {
 }
 
 export interface IStudent {
+  userId: string; // String ID from better-auth
   dateOfBirth?: Date;
   grade?: number;
   gender?: Gender;
@@ -27,6 +28,7 @@ export interface IStudent {
   totalTimeSpent: number; // Total learning time in minutes
   goals?: string[];
   subscription?: string;
+  section?: string; // Class section (e.g., "A", "B", "1A")
   emergencyContact?: IEmergencyContact;
   createdAt: Date;
   updatedAt: Date;

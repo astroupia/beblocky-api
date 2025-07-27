@@ -40,6 +40,7 @@ export interface ISettings {
 }
 
 export interface IOrganization {
+  userId: string; // String ID from better-auth
   name: string;
   type: OrganizationType;
   address: IAddress;
@@ -70,3 +71,8 @@ export interface ICreateOrganizationDto extends ICreateUserDto {
 
 export type IUpdateOrganizationDto = Partial<ICreateOrganizationDto> &
   Partial<IUpdateUserDto>;
+
+// Export actual DTOs and entities from the organization module
+export * from '../../organization/entities/organization.entity';
+export * from '../../organization/dtos/create-organization.dto';
+export * from '../../organization/dtos/update-organization.dto';

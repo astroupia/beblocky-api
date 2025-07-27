@@ -14,6 +14,7 @@ export interface ITimeSlot {
 }
 
 export interface ITeacher {
+  userId: string; // String ID from better-auth
   qualifications: IQualification[];
   availability: Map<string, ITimeSlot[]>;
   rating: number[];
@@ -37,3 +38,8 @@ export interface ICreateTeacherDto extends ICreateUserDto {
 
 export type IUpdateTeacherDto = Partial<ICreateTeacherDto> &
   Partial<IUpdateUserDto>;
+
+// Export actual DTOs and entities from the teacher module
+export * from '../../teacher/entities/teacher.entity';
+export * from '../../teacher/dtos/create-teacher.dto';
+export * from '../../teacher/dtos/update-teacher.dto';
