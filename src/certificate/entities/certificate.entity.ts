@@ -129,7 +129,6 @@ export const CertificateSchema = SchemaFactory.createForClass(
 );
 
 // Create indexes for common queries
-CertificateSchema.index({ certificateId: 1 }, { unique: true });
 CertificateSchema.index({ studentId: 1 });
 CertificateSchema.index({ courseId: 1 });
 CertificateSchema.index({ progressId: 1 });
