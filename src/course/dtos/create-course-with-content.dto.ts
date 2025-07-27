@@ -15,12 +15,7 @@ import {
   CourseStatus,
 } from '../entities/course.entity';
 import { ThemeColorsDto } from '../../shared/dtos/theme-colors.dto';
-
-export enum LessonDifficulty {
-  BEGINNER = 'beginner',
-  INTERMEDIATE = 'intermediate',
-  ADVANCED = 'advanced',
-}
+import { LessonDifficulty } from '../../lesson/entities/lesson.entity';
 
 export class CreateLessonDto {
   @IsString()

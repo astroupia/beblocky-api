@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { ParentService } from '../services/parent.service';
 import { CreateParentDto } from '../dtos/create-parent.dto';
+import { CreateParentFromUserDto } from '../dtos/create-parent-from-user.dto';
 import { UpdateParentDto } from '../dtos/update-parent.dto';
 import { ParentDocument } from '../entities/parent.entity';
 
@@ -19,6 +20,13 @@ export class ParentController {
   @Post()
   create(@Body() createParentDto: CreateParentDto): Promise<ParentDocument> {
     return this.parentService.create(createParentDto);
+  }
+
+  @Post('from-user')
+  createFromUser(
+    @Body() createParentFromUserDto: CreateParentFromUserDto,
+  ): Promise<ParentDocument> {
+    return this.parentService.createFromUser(createParentFromUserDto);
   }
 
   @Get(':id')
@@ -49,5 +57,10 @@ export class ParentController {
     @Param('phoneNumber') phoneNumber: string,
   ): Promise<ParentDocument> {
     return this.parentService.findByPhoneNumber(phoneNumber);
+  }
+
+  @Get('user/:userId')
+  findByUserId(@Param('userId') userId: string): Promise<ParentDocument> {
+    return this.parentService.findByUserId(userId);
   }
 }

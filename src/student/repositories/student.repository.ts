@@ -148,4 +148,12 @@ export class StudentRepository {
     }
     return student;
   }
+
+  async findByUserId(userId: string): Promise<StudentDocument> {
+    const student = await this.studentModel.findOne({ userId }).exec();
+    if (!student) {
+      throw new NotFoundException(`Student with userId ${userId} not found`);
+    }
+    return student;
+  }
 }

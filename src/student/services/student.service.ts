@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { StudentRepository } from '../repositories/student.repository';
 import { CreateStudentDto } from '../dtos/create-student.dto';
+import { CreateStudentFromUserDto } from '../dtos/create-student-from-user.dto';
 import { UpdateStudentDto } from '../dtos/update-student.dto';
 import { Student, StudentDocument } from '../entities/student.entity';
 import { Types } from 'mongoose';
 import { createObjectId } from '../../utils/object-id.utils';
+import { createUserId } from '../../utils/user-id.utils';
 
 @Injectable()
 export class StudentService {
@@ -35,8 +37,57 @@ export class StudentService {
     return entity;
   }
 
+  private mapFromUserDtoToEntity(
+    dto: CreateStudentFromUserDto,
+  ): Partial<Student> {
+    const entity: Partial<Student> = {
+      userId: createUserId(dto.userId, 'userId'),
+      parentId: undefined,
+      enrolledCourses: undefined,
+      schoolId: undefined,
+    };
+
+    if (dto.parentId) {
+      entity.parentId = createObjectId(dto.parentId, 'parentId');
+    }
+
+    if (dto.enrolledCourses) {
+      entity.enrolledCourses = dto.enrolledCourses.map((id) =>
+        createObjectId(id, 'courseId'),
+      );
+    }
+
+    if (dto.schoolId) {
+      entity.schoolId = createObjectId(dto.schoolId, 'schoolId');
+    }
+
+    // Copy other fields
+    if (dto.dateOfBirth) entity.dateOfBirth = dto.dateOfBirth;
+    if (dto.grade) entity.grade = dto.grade;
+    if (dto.gender) entity.gender = dto.gender;
+    if (dto.coins) entity.coins = dto.coins;
+    if (dto.codingStreak) entity.codingStreak = dto.codingStreak;
+    if (dto.lastCodingActivity)
+      entity.lastCodingActivity = dto.lastCodingActivity;
+    if (dto.totalCoinsEarned) entity.totalCoinsEarned = dto.totalCoinsEarned;
+    if (dto.totalTimeSpent) entity.totalTimeSpent = dto.totalTimeSpent;
+    if (dto.goals) entity.goals = dto.goals;
+    if (dto.subscription) entity.subscription = dto.subscription;
+    if (dto.emergencyContact) entity.emergencyContact = dto.emergencyContact;
+    if (dto.section) entity.section = dto.section;
+
+    return entity;
+  }
+
   async create(createStudentDto: CreateStudentDto): Promise<StudentDocument> {
     const entity = this.mapDtoToEntity(createStudentDto);
+    return this.studentRepository.create(entity);
+  }
+
+  async createFromUser(
+    createStudentFromUserDto: CreateStudentFromUserDto,
+  ): Promise<StudentDocument> {
+    const entity = this.mapFromUserDtoToEntity(createStudentFromUserDto);
     return this.studentRepository.create(entity);
   }
 
@@ -112,11 +163,6 @@ export class StudentService {
     return this.studentRepository.addGoal(studentId, goal);
   }
 
-  /**
-   * Update coding streak based on activity
-   * @param studentId - Student ID
-   * @returns Updated student document
-   */
   async updateCodingStreak(studentId: string): Promise<StudentDocument> {
     const student = await this.studentRepository.findById(studentId);
     if (!student) {
@@ -127,34 +173,34 @@ export class StudentService {
     const lastActivity = student.lastCodingActivity;
 
     if (!lastActivity) {
-      // First activity
-      student.codingStreak = 1;
-    } else {
-      const daysDiff = Math.floor(
-        (now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24),
-      );
-
-      if (daysDiff === 0) {
-        // Same day, maintain streak
-        // No change needed
-      } else if (daysDiff === 1) {
-        // Consecutive day, increment streak
-        student.codingStreak += 1;
-      } else {
-        // Streak broken, reset to 1
-        student.codingStreak = 1;
-      }
+      // First coding activity
+      return this.studentRepository.findByIdAndUpdate(studentId, {
+        codingStreak: 1,
+        lastCodingActivity: now,
+      });
     }
 
-    student.lastCodingActivity = now;
-    return this.studentRepository.findByIdAndUpdate(studentId, student);
+    const timeDiff = now.getTime() - lastActivity.getTime();
+    const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+
+    if (daysDiff === 0) {
+      // Same day, no change to streak
+      return student;
+    } else if (daysDiff === 1) {
+      // Consecutive day, increment streak
+      return this.studentRepository.findByIdAndUpdate(studentId, {
+        codingStreak: student.codingStreak + 1,
+        lastCodingActivity: now,
+      });
+    } else {
+      // Streak broken, reset to 1
+      return this.studentRepository.findByIdAndUpdate(studentId, {
+        codingStreak: 1,
+        lastCodingActivity: now,
+      });
+    }
   }
 
-  /**
-   * Get current coding streak for a student
-   * @param studentId - Student ID
-   * @returns Current streak count
-   */
   async getCodingStreak(studentId: string): Promise<number> {
     const student = await this.studentRepository.findById(studentId);
     if (!student) {
@@ -163,12 +209,6 @@ export class StudentService {
     return student.codingStreak;
   }
 
-  /**
-   * Add coins to student and update total coins earned
-   * @param studentId - Student ID
-   * @param amount - Amount of coins to add
-   * @returns Updated student document
-   */
   async addCoinsAndUpdateTotal(
     studentId: string,
     amount: number,
@@ -178,19 +218,15 @@ export class StudentService {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
 
-    // Update both current coins and total coins earned
-    student.coins += amount;
-    student.totalCoinsEarned += amount;
+    const newCoins = student.coins + amount;
+    const newTotalCoinsEarned = student.totalCoinsEarned + amount;
 
-    return this.studentRepository.findByIdAndUpdate(studentId, student);
+    return this.studentRepository.findByIdAndUpdate(studentId, {
+      coins: newCoins,
+      totalCoinsEarned: newTotalCoinsEarned,
+    });
   }
 
-  /**
-   * Update total time spent learning
-   * @param studentId - Student ID
-   * @param minutes - Minutes to add to total time
-   * @returns Updated student document
-   */
   async updateTotalTimeSpent(
     studentId: string,
     minutes: number,
@@ -200,20 +236,21 @@ export class StudentService {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
 
-    student.totalTimeSpent += minutes;
-    return this.studentRepository.findByIdAndUpdate(studentId, student);
+    const newTotalTimeSpent = student.totalTimeSpent + minutes;
+    return this.studentRepository.findByIdAndUpdate(studentId, {
+      totalTimeSpent: newTotalTimeSpent,
+    });
   }
 
-  /**
-   * Get total coins earned by student
-   * @param studentId - Student ID
-   * @returns Total coins earned
-   */
   async getTotalCoinsEarned(studentId: string): Promise<number> {
     const student = await this.studentRepository.findById(studentId);
     if (!student) {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
     return student.totalCoinsEarned;
+  }
+
+  async findByUserId(userId: string): Promise<StudentDocument> {
+    return this.studentRepository.findByUserId(userId);
   }
 }

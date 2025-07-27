@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { StudentService } from '../services/student.service';
 import { CreateStudentDto } from '../dtos/create-student.dto';
+import { CreateStudentFromUserDto } from '../dtos/create-student-from-user.dto';
 import { UpdateStudentDto } from '../dtos/update-student.dto';
 
 @Controller('students')
@@ -18,6 +19,11 @@ export class StudentController {
   @Post()
   create(@Body() createStudentDto: CreateStudentDto) {
     return this.studentService.create(createStudentDto);
+  }
+
+  @Post('from-user')
+  createFromUser(@Body() createStudentFromUserDto: CreateStudentFromUserDto) {
+    return this.studentService.createFromUser(createStudentFromUserDto);
   }
 
   @Get()
@@ -92,5 +98,10 @@ export class StudentController {
     @Body('minutes') minutes: number,
   ) {
     return this.studentService.updateTotalTimeSpent(id, minutes);
+  }
+
+  @Get('user/:userId')
+  findByUserId(@Param('userId') userId: string) {
+    return this.studentService.findByUserId(userId);
   }
 }

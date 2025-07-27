@@ -99,6 +99,14 @@ export class TeacherRepository {
       .exec();
   }
 
+  async findByUserId(userId: string): Promise<TeacherDocument> {
+    const teacher = await this.teacherModel.findOne({ userId }).exec();
+    if (!teacher) {
+      throw new NotFoundException(`Teacher with userId ${userId} not found`);
+    }
+    return teacher;
+  }
+
   async addCourse(
     teacherId: string,
     courseId: string,

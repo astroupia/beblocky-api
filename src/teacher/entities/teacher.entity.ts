@@ -19,7 +19,8 @@ export interface TimeSlot {
 }
 
 // Domain entity
-export interface Teacher extends User {
+export interface Teacher {
+  userId: string; // String ID from better-auth
   qualifications: Qualification[];
   availability: Map<string, TimeSlot[]>;
   rating: number[];
@@ -31,7 +32,10 @@ export interface Teacher extends User {
 
 // Mongoose schema class
 @Schema({ timestamps: true, collection: 'teachers' })
-export class TeacherSchemaClass extends UserSchemaClass implements Teacher {
+export class TeacherSchemaClass implements Teacher {
+  @Prop({ type: String, required: true })
+  userId: string; // String ID from better-auth
+
   @Prop({
     type: [
       {
@@ -74,9 +78,5 @@ export class TeacherSchemaClass extends UserSchemaClass implements Teacher {
 }
 
 export const TeacherSchema = SchemaFactory.createForClass(TeacherSchemaClass);
-TeacherSchema.pre('save', function (next) {
-  this.role = UserRole.TEACHER;
-  next();
-});
 
 export type TeacherDocument = TeacherSchemaClass & Document;

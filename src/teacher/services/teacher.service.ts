@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { TeacherRepository } from '../repositories/teacher.repository';
 import { CreateTeacherDto } from '../dtos/create-teacher.dto';
+import { CreateTeacherFromUserDto } from '../dtos/create-teacher-from-user.dto';
 import { UpdateTeacherDto } from '../dtos/update-teacher.dto';
 import { Teacher, TeacherDocument } from '../entities/teacher.entity';
 import { Types } from 'mongoose';
 import { createObjectId } from '../../utils/object-id.utils';
+import { createUserId } from '../../utils/user-id.utils';
 
 @Injectable()
 export class TeacherService {
@@ -36,8 +42,49 @@ export class TeacherService {
     return entity;
   }
 
+  private mapFromUserDtoToEntity(
+    dto: CreateTeacherFromUserDto,
+  ): Partial<Teacher> {
+    const entity: Partial<Teacher> = {
+      userId: createUserId(dto.userId, 'userId'),
+      organizationId: undefined,
+      courses: undefined,
+      subscription: undefined,
+    };
+
+    if (dto.organizationId) {
+      entity.organizationId = createObjectId(
+        dto.organizationId,
+        'organizationId',
+      );
+    }
+
+    if (dto.courses) {
+      entity.courses = dto.courses.map((id) => createObjectId(id, 'courseId'));
+    }
+
+    if (dto.subscription) {
+      entity.subscription = createObjectId(dto.subscription, 'subscription');
+    }
+
+    // Copy other fields
+    if (dto.qualifications) entity.qualifications = dto.qualifications;
+    if (dto.availability) entity.availability = dto.availability;
+    if (dto.rating) entity.rating = dto.rating;
+    if (dto.languages) entity.languages = dto.languages;
+
+    return entity;
+  }
+
   async create(createTeacherDto: CreateTeacherDto): Promise<TeacherDocument> {
     const entity = this.mapDtoToEntity(createTeacherDto);
+    return this.teacherRepository.create(entity);
+  }
+
+  async createFromUser(
+    createTeacherFromUserDto: CreateTeacherFromUserDto,
+  ): Promise<TeacherDocument> {
+    const entity = this.mapFromUserDtoToEntity(createTeacherFromUserDto);
     return this.teacherRepository.create(entity);
   }
 
@@ -76,6 +123,10 @@ export class TeacherService {
     organizationId: string,
   ): Promise<TeacherDocument[]> {
     return this.teacherRepository.findByOrganizationId(organizationId);
+  }
+
+  async findByUserId(userId: string): Promise<TeacherDocument> {
+    return this.teacherRepository.findByUserId(userId);
   }
 
   async addCourse(

@@ -89,7 +89,7 @@ export class CertificateService {
 
     return {
       title: 'Certificate of Completion',
-      studentName: student.name,
+      studentName: `Student ${student.userId}`, // Placeholder - you might want to get this from User service
       courseName: course.courseTitle,
       completionPercentage:
         issueData.completionPercentage || progress.percentage,
