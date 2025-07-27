@@ -1,15 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, forwardRef, Inject } from '@nestjs/common';
 import { OrganizationRepository } from '../repositories/organization.repository';
 import { OrganizationDocument } from '../entities/organization.entity';
 import { CreateOrganizationDto } from '../dtos/create-organization.dto';
 import { CreateOrganizationFromUserDto } from '../dtos/create-organization-from-user.dto';
 import { UpdateOrganizationDto } from '../dtos/update-organization.dto';
 import { createUserId } from '../../utils/user-id.utils';
+import { UserService } from '../../user/services/user.service';
 
 @Injectable()
 export class OrganizationService {
   constructor(
     private readonly organizationRepository: OrganizationRepository,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
   ) {}
 
   private mapDtoToEntity(
@@ -83,8 +86,28 @@ export class OrganizationService {
   async createFromUser(
     createOrganizationFromUserDto: CreateOrganizationFromUserDto,
   ): Promise<OrganizationDocument> {
+    // Get user information to include email
+    const user = await this.userService.findOne(
+      createOrganizationFromUserDto.userId,
+    );
+
     const entity = this.mapFromUserDtoToEntity(createOrganizationFromUserDto);
-    return this.organizationRepository.create(entity);
+    const createdOrganization =
+      await this.organizationRepository.create(entity);
+
+    // Return organization with user email included
+    return {
+      ...createdOrganization.toObject(),
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        emailVerified: user.emailVerified,
+        role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    } as OrganizationDocument;
   }
 
   async findById(id: string): Promise<OrganizationDocument> {

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, forwardRef, Inject } from '@nestjs/common';
 import { AdminRepository } from '../repositories/admin.repository';
 import { AdminDocument } from '../entities/admin.entity';
 import { CreateAdminDto } from '../dtos/create-admin.dto';
@@ -6,10 +6,15 @@ import { CreateAdminFromUserDto } from '../dtos/create-admin-from-user.dto';
 import { UpdateAdminDto } from '../dtos/update-admin.dto';
 import { createUserId } from '../../utils/user-id.utils';
 import { createObjectId } from '../../utils/object-id.utils';
+import { UserService } from '../../user/services/user.service';
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly adminRepository: AdminRepository) {}
+  constructor(
+    private readonly adminRepository: AdminRepository,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
+  ) {}
 
   private mapFromUserDtoToEntity(
     dto: CreateAdminFromUserDto,
@@ -36,8 +41,25 @@ export class AdminService {
   async createFromUser(
     createAdminFromUserDto: CreateAdminFromUserDto,
   ): Promise<AdminDocument> {
+    // Get user information to include email
+    const user = await this.userService.findOne(createAdminFromUserDto.userId);
+
     const entity = this.mapFromUserDtoToEntity(createAdminFromUserDto);
-    return this.adminRepository.create(entity);
+    const createdAdmin = await this.adminRepository.create(entity);
+
+    // Return admin with user email included
+    return {
+      ...createdAdmin.toObject(),
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        emailVerified: user.emailVerified,
+        role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    } as AdminDocument;
   }
 
   async findById(id: string): Promise<AdminDocument> {

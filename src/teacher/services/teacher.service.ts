@@ -2,6 +2,8 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
 import { TeacherRepository } from '../repositories/teacher.repository';
 import { CreateTeacherDto } from '../dtos/create-teacher.dto';
@@ -11,10 +13,15 @@ import { Teacher, TeacherDocument } from '../entities/teacher.entity';
 import { Types } from 'mongoose';
 import { createObjectId } from '../../utils/object-id.utils';
 import { createUserId } from '../../utils/user-id.utils';
+import { UserService } from '../../user/services/user.service';
 
 @Injectable()
 export class TeacherService {
-  constructor(private readonly teacherRepository: TeacherRepository) {}
+  constructor(
+    private readonly teacherRepository: TeacherRepository,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
+  ) {}
 
   private mapDtoToEntity(dto: Partial<CreateTeacherDto>): Partial<Teacher> {
     const entity: Partial<Teacher> = {
@@ -84,8 +91,27 @@ export class TeacherService {
   async createFromUser(
     createTeacherFromUserDto: CreateTeacherFromUserDto,
   ): Promise<TeacherDocument> {
+    // Get user information to include email
+    const user = await this.userService.findOne(
+      createTeacherFromUserDto.userId,
+    );
+
     const entity = this.mapFromUserDtoToEntity(createTeacherFromUserDto);
-    return this.teacherRepository.create(entity);
+    const createdTeacher = await this.teacherRepository.create(entity);
+
+    // Return teacher with user email included
+    return {
+      ...createdTeacher.toObject(),
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        emailVerified: user.emailVerified,
+        role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    } as TeacherDocument;
   }
 
   async findAll(): Promise<TeacherDocument[]> {

@@ -156,4 +156,36 @@ export class StudentRepository {
     }
     return student;
   }
+
+  async findByEmail(email: string): Promise<StudentDocument> {
+    const student = await this.studentModel
+      .aggregate([
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'user',
+          },
+        },
+        {
+          $unwind: '$user',
+        },
+        {
+          $match: {
+            'user.email': email,
+          },
+        },
+        {
+          $limit: 1,
+        },
+      ])
+      .exec();
+
+    if (!student || student.length === 0) {
+      throw new NotFoundException(`Student with email ${email} not found`);
+    }
+
+    return student[0] as StudentDocument;
+  }
 }

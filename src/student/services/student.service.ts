@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  forwardRef,
+  Inject,
+} from '@nestjs/common';
 import { StudentRepository } from '../repositories/student.repository';
 import { CreateStudentDto } from '../dtos/create-student.dto';
 import { CreateStudentFromUserDto } from '../dtos/create-student-from-user.dto';
@@ -7,10 +12,15 @@ import { Student, StudentDocument } from '../entities/student.entity';
 import { Types } from 'mongoose';
 import { createObjectId } from '../../utils/object-id.utils';
 import { createUserId } from '../../utils/user-id.utils';
+import { UserService } from '../../user/services/user.service';
 
 @Injectable()
 export class StudentService {
-  constructor(private readonly studentRepository: StudentRepository) {}
+  constructor(
+    private readonly studentRepository: StudentRepository,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
+  ) {}
 
   private mapDtoToEntity(dto: Partial<CreateStudentDto>): Partial<Student> {
     const entity: Partial<Student> = {
@@ -87,8 +97,27 @@ export class StudentService {
   async createFromUser(
     createStudentFromUserDto: CreateStudentFromUserDto,
   ): Promise<StudentDocument> {
+    // Get user information to include email
+    const user = await this.userService.findOne(
+      createStudentFromUserDto.userId,
+    );
+
     const entity = this.mapFromUserDtoToEntity(createStudentFromUserDto);
-    return this.studentRepository.create(entity);
+    const createdStudent = await this.studentRepository.create(entity);
+
+    // Return student with user email included
+    return {
+      ...createdStudent.toObject(),
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+        emailVerified: user.emailVerified,
+        role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    } as StudentDocument;
   }
 
   async findAll(): Promise<StudentDocument[]> {
@@ -252,5 +281,9 @@ export class StudentService {
 
   async findByUserId(userId: string): Promise<StudentDocument> {
     return this.studentRepository.findByUserId(userId);
+  }
+
+  async findByEmail(email: string): Promise<StudentDocument> {
+    return this.studentRepository.findByEmail(email);
   }
 }

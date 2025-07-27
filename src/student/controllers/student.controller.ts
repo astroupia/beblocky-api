@@ -104,4 +104,9 @@ export class StudentController {
   findByUserId(@Param('userId') userId: string) {
     return this.studentService.findByUserId(userId);
   }
+
+  @Get('email/:email')
+  findByEmail(@Param('email') email: string) {
+    return this.studentService.findByEmail(email);
+  }
 }
