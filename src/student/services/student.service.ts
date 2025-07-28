@@ -97,27 +97,32 @@ export class StudentService {
   async createFromUser(
     createStudentFromUserDto: CreateStudentFromUserDto,
   ): Promise<StudentDocument> {
-    // Get user information to include email
-    const user = await this.userService.findOne(
-      createStudentFromUserDto.userId,
-    );
+    try {
+      // Get user information to include email
+      const user = await this.userService.findOne(
+        createStudentFromUserDto.userId,
+      );
 
-    const entity = this.mapFromUserDtoToEntity(createStudentFromUserDto);
-    const createdStudent = await this.studentRepository.create(entity);
+      const entity = this.mapFromUserDtoToEntity(createStudentFromUserDto);
+      const createdStudent = await this.studentRepository.create(entity);
 
-    // Return student with user email included
-    return {
-      ...createdStudent.toObject(),
-      user: {
-        _id: user._id,
-        email: user.email,
-        name: user.name,
-        emailVerified: user.emailVerified,
-        role: user.role,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
-    } as StudentDocument;
+      // Return student with user email included
+      return {
+        ...createdStudent.toObject(),
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          emailVerified: user.emailVerified,
+          role: user.role,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+      } as StudentDocument;
+    } catch (error) {
+      console.error('Error in createFromUser (Student):', error);
+      throw error;
+    }
   }
 
   async findAll(): Promise<StudentDocument[]> {

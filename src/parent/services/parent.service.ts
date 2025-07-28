@@ -39,25 +39,32 @@ export class ParentService {
   async createFromUser(
     createParentFromUserDto: CreateParentFromUserDto,
   ): Promise<ParentDocument> {
-    // Get user information to include email
-    const user = await this.userService.findOne(createParentFromUserDto.userId);
+    try {
+      // Get user information to include email
+      const user = await this.userService.findOne(
+        createParentFromUserDto.userId,
+      );
 
-    const entity = this.mapFromUserDtoToEntity(createParentFromUserDto);
-    const createdParent = await this.parentRepository.create(entity);
+      const entity = this.mapFromUserDtoToEntity(createParentFromUserDto);
+      const createdParent = await this.parentRepository.create(entity);
 
-    // Return parent with user email included
-    return {
-      ...createdParent.toObject(),
-      user: {
-        _id: user._id,
-        email: user.email,
-        name: user.name,
-        emailVerified: user.emailVerified,
-        role: user.role,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
-    } as ParentDocument;
+      // Return parent with user email included
+      return {
+        ...createdParent.toObject(),
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          emailVerified: user.emailVerified,
+          role: user.role,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+      } as ParentDocument;
+    } catch (error) {
+      console.error('Error in createFromUser (Parent):', error);
+      throw error;
+    }
   }
 
   async findById(id: string): Promise<ParentDocument> {

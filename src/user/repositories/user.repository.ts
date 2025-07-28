@@ -20,7 +20,7 @@ export class UserRepository {
   }
 
   async findById(id: string): Promise<UserDocument> {
-    const user = await this.userModel.findById(id).exec();
+    const user = await this.userModel.findOne({ _id: id }).exec();
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
@@ -40,7 +40,7 @@ export class UserRepository {
     data: Partial<User>,
   ): Promise<UserDocument> {
     const user = await this.userModel
-      .findByIdAndUpdate(id, data, { new: true })
+      .findOneAndUpdate({ _id: id }, data, { new: true })
       .exec();
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -49,7 +49,7 @@ export class UserRepository {
   }
 
   async findByIdAndDelete(id: string): Promise<UserDocument> {
-    const user = await this.userModel.findByIdAndDelete(id).exec();
+    const user = await this.userModel.findOneAndDelete({ _id: id }).exec();
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }

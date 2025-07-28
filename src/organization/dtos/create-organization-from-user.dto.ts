@@ -108,14 +108,13 @@ export class CreateOrganizationFromUserDto {
 
   @ValidateNested()
   @Type(() => ContactInfoDto)
-  @IsNotEmpty()
   @IsOptional()
   contactInfo?: ContactInfoDto;
 
   @ValidateNested()
   @Type(() => FeaturesDto)
   @IsOptional()
-  features: FeaturesDto;
+  features?: FeaturesDto;
 
   @ValidateNested()
   @Type(() => SettingsDto)

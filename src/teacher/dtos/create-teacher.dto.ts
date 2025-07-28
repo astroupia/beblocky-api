@@ -50,11 +50,8 @@ export class CreateTeacherDto extends CreateUserDto {
   @IsOptional()
   qualifications?: QualificationDto[];
 
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => TimeSlotDto)
   @IsOptional()
-  availability?: Map<string, TimeSlotDto[]>;
+  availability?: Record<string, TimeSlotDto[]>;
 
   @IsArray()
   @IsNumber({}, { each: true })

@@ -25,11 +25,15 @@ export class TeacherService {
 
   private mapDtoToEntity(dto: Partial<CreateTeacherDto>): Partial<Teacher> {
     const entity: Partial<Teacher> = {
-      ...dto,
       organizationId: undefined,
       courses: undefined,
       subscription: undefined,
     };
+
+    // Copy basic fields
+    if (dto.qualifications) entity.qualifications = dto.qualifications;
+    if (dto.rating) entity.rating = dto.rating;
+    if (dto.languages) entity.languages = dto.languages;
 
     if (dto.organizationId) {
       entity.organizationId = createObjectId(
@@ -46,6 +50,11 @@ export class TeacherService {
       entity.subscription = createObjectId(dto.subscription, 'subscription');
     }
 
+    // Handle availability conversion
+    if (dto.availability) {
+      entity.availability = dto.availability;
+    }
+
     return entity;
   }
 
@@ -54,7 +63,6 @@ export class TeacherService {
   ): Partial<Teacher> {
     const entity: Partial<Teacher> = {
       userId: createUserId(dto.userId, 'userId'),
-      organizationId: undefined,
       courses: undefined,
       subscription: undefined,
     };
@@ -91,27 +99,32 @@ export class TeacherService {
   async createFromUser(
     createTeacherFromUserDto: CreateTeacherFromUserDto,
   ): Promise<TeacherDocument> {
-    // Get user information to include email
-    const user = await this.userService.findOne(
-      createTeacherFromUserDto.userId,
-    );
+    try {
+      // Get user information to include email
+      const user = await this.userService.findOne(
+        createTeacherFromUserDto.userId,
+      );
 
-    const entity = this.mapFromUserDtoToEntity(createTeacherFromUserDto);
-    const createdTeacher = await this.teacherRepository.create(entity);
+      const entity = this.mapFromUserDtoToEntity(createTeacherFromUserDto);
+      const createdTeacher = await this.teacherRepository.create(entity);
 
-    // Return teacher with user email included
-    return {
-      ...createdTeacher.toObject(),
-      user: {
-        _id: user._id,
-        email: user.email,
-        name: user.name,
-        emailVerified: user.emailVerified,
-        role: user.role,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
-    } as TeacherDocument;
+      // Return teacher with user email included
+      return {
+        ...createdTeacher.toObject(),
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          emailVerified: user.emailVerified,
+          role: user.role,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+      } as TeacherDocument;
+    } catch (error) {
+      console.error('Error in createFromUser:', error);
+      throw error;
+    }
   }
 
   async findAll(): Promise<TeacherDocument[]> {

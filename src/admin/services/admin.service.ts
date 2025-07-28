@@ -41,25 +41,32 @@ export class AdminService {
   async createFromUser(
     createAdminFromUserDto: CreateAdminFromUserDto,
   ): Promise<AdminDocument> {
-    // Get user information to include email
-    const user = await this.userService.findOne(createAdminFromUserDto.userId);
+    try {
+      // Get user information to include email
+      const user = await this.userService.findOne(
+        createAdminFromUserDto.userId,
+      );
 
-    const entity = this.mapFromUserDtoToEntity(createAdminFromUserDto);
-    const createdAdmin = await this.adminRepository.create(entity);
+      const entity = this.mapFromUserDtoToEntity(createAdminFromUserDto);
+      const createdAdmin = await this.adminRepository.create(entity);
 
-    // Return admin with user email included
-    return {
-      ...createdAdmin.toObject(),
-      user: {
-        _id: user._id,
-        email: user.email,
-        name: user.name,
-        emailVerified: user.emailVerified,
-        role: user.role,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
-    } as AdminDocument;
+      // Return admin with user email included
+      return {
+        ...createdAdmin.toObject(),
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          emailVerified: user.emailVerified,
+          role: user.role,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+      } as AdminDocument;
+    } catch (error) {
+      console.error('Error in createFromUser (Admin):', error);
+      throw error;
+    }
   }
 
   async findById(id: string): Promise<AdminDocument> {

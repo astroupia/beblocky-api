@@ -86,28 +86,33 @@ export class OrganizationService {
   async createFromUser(
     createOrganizationFromUserDto: CreateOrganizationFromUserDto,
   ): Promise<OrganizationDocument> {
-    // Get user information to include email
-    const user = await this.userService.findOne(
-      createOrganizationFromUserDto.userId,
-    );
+    try {
+      // Get user information to include email
+      const user = await this.userService.findOne(
+        createOrganizationFromUserDto.userId,
+      );
 
-    const entity = this.mapFromUserDtoToEntity(createOrganizationFromUserDto);
-    const createdOrganization =
-      await this.organizationRepository.create(entity);
+      const entity = this.mapFromUserDtoToEntity(createOrganizationFromUserDto);
+      const createdOrganization =
+        await this.organizationRepository.create(entity);
 
-    // Return organization with user email included
-    return {
-      ...createdOrganization.toObject(),
-      user: {
-        _id: user._id,
-        email: user.email,
-        name: user.name,
-        emailVerified: user.emailVerified,
-        role: user.role,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
-    } as OrganizationDocument;
+      // Return organization with user email included
+      return {
+        ...createdOrganization.toObject(),
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          emailVerified: user.emailVerified,
+          role: user.role,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+      } as OrganizationDocument;
+    } catch (error) {
+      console.error('Error in createFromUser (Organization):', error);
+      throw error;
+    }
   }
 
   async findById(id: string): Promise<OrganizationDocument> {
