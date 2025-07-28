@@ -19,7 +19,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "migrate:user-ids": "node scripts/migrate-user-ids.js migrate",
-    "test:user-ids": "node scripts/test-string-user-ids.js"
+    "test:user-ids": "node scripts/test-string-user-ids.js",
+    "fix:teacher-index": "node scripts/fix-teacher-email-index.js"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.0",
@@ -38,6 +39,7 @@
     "class-validator": "^0.14.2",
     "cloudinary": "^2.7.0",
     "dotenv": "^16.5.0",
+    "mongodb": "^6.18.0",
     "mongoose": "^8.15.0",
     "multer": "^2.0.1",
     "reflect-metadata": "^0.2.2",
