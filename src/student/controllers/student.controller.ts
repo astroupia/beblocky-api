@@ -100,13 +100,13 @@ export class StudentController {
     return this.studentService.updateTotalTimeSpent(id, minutes);
   }
 
-  @Get('user/:userId')
-  findByUserId(@Param('userId') userId: string) {
-    return this.studentService.findByUserId(userId);
-  }
-
   @Get('email/:email')
   findByEmail(@Param('email') email: string) {
     return this.studentService.findByEmail(email);
+  }
+
+  @Get('user/:userId')
+  findByUserId(@Param('userId') userId: string) {
+    return this.studentService.findByUserId(userId);
   }
 }

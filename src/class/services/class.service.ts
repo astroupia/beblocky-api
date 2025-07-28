@@ -19,6 +19,8 @@ import { TeacherService } from '../../teacher/services/teacher.service';
 import { Types } from 'mongoose';
 import { createObjectId } from '../../utils/object-id.utils';
 import { createUserId } from '../../utils/user-id.utils';
+import { BulkImportStudentsDto } from '../dtos/bulk-import-students.dto';
+import { AddStudentByEmailDto } from '../dtos/add-student-by-email.dto';
 
 @Injectable()
 export class ClassService {
@@ -592,5 +594,100 @@ export class ClassService {
         false,
       );
     }
+  }
+
+  /**
+   * Bulk import students from CSV data
+   */
+  async bulkImportStudents(
+    classId: string,
+    bulkImportDto: BulkImportStudentsDto,
+  ): Promise<{
+    success: number;
+    failed: number;
+    results: Array<{
+      email: string;
+      status: 'success' | 'failed';
+      message: string;
+      studentId?: string;
+    }>;
+  }> {
+    const classDoc = await this.findById(classId);
+    if (!classDoc) {
+      throw new BadRequestException(`Class with ID ${classId} not found`);
+    }
+
+    const results: Array<{
+      email: string;
+      status: 'success' | 'failed';
+      message: string;
+      studentId?: string;
+    }> = [];
+    let successCount = 0;
+    let failedCount = 0;
+
+    for (const studentData of bulkImportDto.students) {
+      try {
+        // Check if student exists by email
+        let student;
+        try {
+          student = await this.studentService.findByEmail(studentData.email);
+        } catch (error) {
+          // Student doesn't exist, throw error
+          throw new BadRequestException(
+            `Student with email ${studentData.email} does not exist`,
+          );
+        }
+
+        // Add student to class
+        await this.addStudent(classId, { studentId: student._id.toString() });
+
+        results.push({
+          email: studentData.email,
+          status: 'success' as const,
+          message: 'Student successfully imported and added to class',
+          studentId: student._id.toString(),
+        });
+        successCount++;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
+        results.push({
+          email: studentData.email,
+          status: 'failed' as const,
+          message: errorMessage,
+        });
+        failedCount++;
+      }
+    }
+
+    return {
+      success: successCount,
+      failed: failedCount,
+      results,
+    };
+  }
+
+  /**
+   * Add a single student to class using email
+   */
+  async addStudentByEmail(
+    classId: string,
+    addStudentByEmailDto: AddStudentByEmailDto,
+  ): Promise<ClassDocument> {
+    const classDoc = await this.findById(classId);
+    if (!classDoc) {
+      throw new BadRequestException(`Class with ID ${classId} not found`);
+    }
+
+    // Find student by email
+    const student = await this.studentService.findByEmail(
+      addStudentByEmailDto.email,
+    );
+
+    // Add student to class using existing addStudent method
+    return this.addStudent(classId, {
+      studentId: (student._id as any).toString(),
+    });
   }
 }

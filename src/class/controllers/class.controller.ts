@@ -15,6 +15,8 @@ import { UpdateClassDto, ExtendClassDto } from '../dtos/update-class.dto';
 import { UpdateClassSettingsDto } from '../dtos/update-class-settings.dto';
 import { AddStudentDto, RemoveStudentDto } from '../dtos/add-student.dto';
 import { AddCourseDto, RemoveCourseDto } from '../dtos/add-course.dto';
+import { BulkImportStudentsDto } from '../dtos/bulk-import-students.dto';
+import { AddStudentByEmailDto } from '../dtos/add-student-by-email.dto';
 import { ClassUserType } from '../entities/class.entity';
 
 @Controller('classes')
@@ -139,5 +141,21 @@ export class ClassController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.classService.delete(id);
+  }
+
+  @Post(':id/bulk-import-students')
+  bulkImportStudents(
+    @Param('id') id: string,
+    @Body() bulkImportDto: BulkImportStudentsDto,
+  ) {
+    return this.classService.bulkImportStudents(id, bulkImportDto);
+  }
+
+  @Post(':id/add-student-by-email')
+  addStudentByEmail(
+    @Param('id') id: string,
+    @Body() addStudentByEmailDto: AddStudentByEmailDto,
+  ) {
+    return this.classService.addStudentByEmail(id, addStudentByEmailDto);
   }
 }
