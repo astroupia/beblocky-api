@@ -39,8 +39,9 @@ export class CourseRepository {
   }
 
   async findById(id: string): Promise<CourseDocument> {
+    const objectId = this.convertToObjectId(id);
     const course = await this.courseModel
-      .findById(id)
+      .findById(objectId)
       .populate('lessons')
       .populate('slides')
       .exec();

@@ -5,7 +5,6 @@ import { PaymentDocument } from '../entities/payment.entity';
 import { ResponseStatusDto } from '../dto/response-status.dto';
 import { Types } from 'mongoose';
 import { PaymentStatus } from '../../common/payment-provider.enums';
-import { createObjectId } from '../../utils/object-id.utils';
 @Injectable()
 export class PaymentRepository {
   constructor(
@@ -113,20 +112,18 @@ export class PaymentRepository {
   }
 
   /**
-   * Finds all payments made by a specific user based on their MongoDB ObjectId.
+   * Finds all payments made by a specific user based on their string user ID from better-auth.
    *
-   * @param userId - The user's unique MongoDB ObjectId in string format.
+   * @param userId - The user's unique string ID from better-auth.
    * @returns A Promise that resolves to an array of PaymentDocument objects.
    *
-   * @throws Error if the userId is not a valid MongoDB ObjectId.
-   *
    * @example
-   * const payments = await paymentRepository.findByUserId('64b9f2a3fc13ae1d3c000001');
+   * const payments = await paymentRepository.findByUserId('user_123456789');
    */
   async findByUserId(userId: string): Promise<PaymentDocument[]> {
     return this.paymentModel
       .find({
-        userId: createObjectId(userId, 'userId'),
+        userId: userId,
       })
       .exec();
   }

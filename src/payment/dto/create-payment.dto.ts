@@ -36,7 +36,7 @@ export class Item {
 }
 
 export class CreatePaymentDto {
-  @IsObjectId()
+  @IsString()
   userId: string;
 
   @IsNumber()
