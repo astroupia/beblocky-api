@@ -19,19 +19,23 @@ export interface TimeSlot {
 }
 
 // Domain entity
-export interface Teacher extends User {
+export interface Teacher {
+  userId: string; // String ID from better-auth
   qualifications: Qualification[];
-  availability: Map<string, TimeSlot[]>;
+  availability: Record<string, TimeSlot[]>;
   rating: number[];
   courses: Types.ObjectId[];
-  organizationId: Types.ObjectId;
+  organizationId?: Types.ObjectId;
   languages: string[];
   subscription?: Types.ObjectId;
 }
 
 // Mongoose schema class
 @Schema({ timestamps: true, collection: 'teachers' })
-export class TeacherSchemaClass extends UserSchemaClass implements Teacher {
+export class TeacherSchemaClass implements Teacher {
+  @Prop({ type: String, required: true })
+  userId: string; // String ID from better-auth
+
   @Prop({
     type: [
       {
@@ -46,16 +50,10 @@ export class TeacherSchemaClass extends UserSchemaClass implements Teacher {
   qualifications: Qualification[];
 
   @Prop({
-    type: Map,
-    of: [
-      {
-        startTime: String,
-        endTime: String,
-      },
-    ],
-    default: new Map(),
+    type: Object,
+    default: {},
   })
-  availability: Map<string, TimeSlot[]>;
+  availability: Record<string, TimeSlot[]>;
 
   @Prop({ type: [Number], default: [0] })
   rating: number[];
@@ -63,8 +61,8 @@ export class TeacherSchemaClass extends UserSchemaClass implements Teacher {
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Course' }], default: [] })
   courses: Types.ObjectId[];
 
-  @Prop({ type: Types.ObjectId, ref: 'Organization', required: true })
-  organizationId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Organization', required: false })
+  organizationId?: Types.ObjectId;
 
   @Prop({ type: [String], default: [] })
   languages: string[];
@@ -74,9 +72,10 @@ export class TeacherSchemaClass extends UserSchemaClass implements Teacher {
 }
 
 export const TeacherSchema = SchemaFactory.createForClass(TeacherSchemaClass);
-TeacherSchema.pre('save', function (next) {
-  this.role = UserRole.TEACHER;
-  next();
-});
+
+// Create indexes for common queries
+TeacherSchema.index({ userId: 1 }, { unique: true });
+TeacherSchema.index({ organizationId: 1 });
+TeacherSchema.index({ courses: 1 });
 
 export type TeacherDocument = TeacherSchemaClass & Document;

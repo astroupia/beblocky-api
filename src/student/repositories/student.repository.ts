@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Student, StudentDocument } from '../entities/student.entity';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class StudentRepository {
@@ -11,7 +12,7 @@ export class StudentRepository {
   ) {}
 
   private convertToObjectId(id: string | Types.ObjectId): Types.ObjectId {
-    return typeof id === 'string' ? new Types.ObjectId(id) : id;
+    return typeof id === 'string' ? createObjectId(id, 'id') : id;
   }
 
   private convertArrayToObjectIds(
@@ -95,7 +96,9 @@ export class StudentRepository {
     const student = await this.studentModel
       .findByIdAndUpdate(
         studentId,
-        { $addToSet: { enrolledCourses: new Types.ObjectId(courseId) } },
+        {
+          $addToSet: { enrolledCourses: createObjectId(courseId, 'courseId') },
+        },
         { new: true },
       )
       .exec();
@@ -112,7 +115,7 @@ export class StudentRepository {
     const student = await this.studentModel
       .findByIdAndUpdate(
         studentId,
-        { $pull: { enrolledCourses: new Types.ObjectId(courseId) } },
+        { $pull: { enrolledCourses: createObjectId(courseId, 'courseId') } },
         { new: true },
       )
       .exec();
@@ -144,5 +147,45 @@ export class StudentRepository {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
     return student;
+  }
+
+  async findByUserId(userId: string): Promise<StudentDocument> {
+    const student = await this.studentModel.findOne({ userId }).exec();
+    if (!student) {
+      throw new NotFoundException(`Student with userId ${userId} not found`);
+    }
+    return student;
+  }
+
+  async findByEmail(email: string): Promise<StudentDocument> {
+    const student = await this.studentModel
+      .aggregate([
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'userId',
+            foreignField: '_id',
+            as: 'user',
+          },
+        },
+        {
+          $unwind: '$user',
+        },
+        {
+          $match: {
+            'user.email': email,
+          },
+        },
+        {
+          $limit: 1,
+        },
+      ])
+      .exec();
+
+    if (!student || student.length === 0) {
+      throw new NotFoundException(`Student with email ${email} not found`);
+    }
+
+    return student[0] as StudentDocument;
   }
 }

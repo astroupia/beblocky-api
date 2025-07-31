@@ -1,30 +1,90 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  forwardRef,
+  Inject,
+} from '@nestjs/common';
 import { StudentRepository } from '../repositories/student.repository';
 import { CreateStudentDto } from '../dtos/create-student.dto';
+import { CreateStudentFromUserDto } from '../dtos/create-student-from-user.dto';
 import { UpdateStudentDto } from '../dtos/update-student.dto';
 import { Student, StudentDocument } from '../entities/student.entity';
 import { Types } from 'mongoose';
+import { createObjectId } from '../../utils/object-id.utils';
+import { createUserId } from '../../utils/user-id.utils';
+import { UserService } from '../../user/services/user.service';
 
 @Injectable()
 export class StudentService {
-  constructor(private readonly studentRepository: StudentRepository) {}
+  constructor(
+    private readonly studentRepository: StudentRepository,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
+  ) {}
 
   private mapDtoToEntity(dto: Partial<CreateStudentDto>): Partial<Student> {
-    const entity: Partial<Student> = { ...dto };
+    const entity: Partial<Student> = {
+      ...dto,
+      parentId: undefined,
+      enrolledCourses: undefined,
+      schoolId: undefined,
+    };
 
     if (dto.parentId) {
-      entity.parentId = new Types.ObjectId(dto.parentId);
+      entity.parentId = createObjectId(dto.parentId, 'parentId');
     }
 
     if (dto.enrolledCourses) {
-      entity.enrolledCourses = dto.enrolledCourses.map(
-        (id) => new Types.ObjectId(id),
+      entity.enrolledCourses = dto.enrolledCourses.map((id) =>
+        createObjectId(id, 'courseId'),
       );
     }
 
     if (dto.schoolId) {
-      entity.schoolId = new Types.ObjectId(dto.schoolId);
+      entity.schoolId = createObjectId(dto.schoolId, 'schoolId');
     }
+
+    return entity;
+  }
+
+  private mapFromUserDtoToEntity(
+    dto: CreateStudentFromUserDto,
+  ): Partial<Student> {
+    const entity: Partial<Student> = {
+      userId: createUserId(dto.userId, 'userId'),
+      parentId: undefined,
+      enrolledCourses: undefined,
+      schoolId: undefined,
+    };
+
+    if (dto.parentId) {
+      entity.parentId = createObjectId(dto.parentId, 'parentId');
+    }
+
+    if (dto.enrolledCourses) {
+      entity.enrolledCourses = dto.enrolledCourses.map((id) =>
+        createObjectId(id, 'courseId'),
+      );
+    }
+
+    if (dto.schoolId) {
+      entity.schoolId = createObjectId(dto.schoolId, 'schoolId');
+    }
+
+    // Copy other fields
+    if (dto.dateOfBirth) entity.dateOfBirth = dto.dateOfBirth;
+    if (dto.grade) entity.grade = dto.grade;
+    if (dto.gender) entity.gender = dto.gender;
+    if (dto.coins) entity.coins = dto.coins;
+    if (dto.codingStreak) entity.codingStreak = dto.codingStreak;
+    if (dto.lastCodingActivity)
+      entity.lastCodingActivity = dto.lastCodingActivity;
+    if (dto.totalCoinsEarned) entity.totalCoinsEarned = dto.totalCoinsEarned;
+    if (dto.totalTimeSpent) entity.totalTimeSpent = dto.totalTimeSpent;
+    if (dto.goals) entity.goals = dto.goals;
+    if (dto.subscription) entity.subscription = dto.subscription;
+    if (dto.emergencyContact) entity.emergencyContact = dto.emergencyContact;
+    if (dto.section) entity.section = dto.section;
 
     return entity;
   }
@@ -32,6 +92,37 @@ export class StudentService {
   async create(createStudentDto: CreateStudentDto): Promise<StudentDocument> {
     const entity = this.mapDtoToEntity(createStudentDto);
     return this.studentRepository.create(entity);
+  }
+
+  async createFromUser(
+    createStudentFromUserDto: CreateStudentFromUserDto,
+  ): Promise<StudentDocument> {
+    try {
+      // Get user information to include email
+      const user = await this.userService.findOne(
+        createStudentFromUserDto.userId,
+      );
+
+      const entity = this.mapFromUserDtoToEntity(createStudentFromUserDto);
+      const createdStudent = await this.studentRepository.create(entity);
+
+      // Return student with user email included
+      return {
+        ...createdStudent.toObject(),
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          emailVerified: user.emailVerified,
+          role: user.role,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+      } as StudentDocument;
+    } catch (error) {
+      console.error('Error in createFromUser (Student):', error);
+      throw error;
+    }
   }
 
   async findAll(): Promise<StudentDocument[]> {
@@ -104,5 +195,100 @@ export class StudentService {
       throw new NotFoundException(`Student with ID ${studentId} not found`);
     }
     return this.studentRepository.addGoal(studentId, goal);
+  }
+
+  async updateCodingStreak(studentId: string): Promise<StudentDocument> {
+    const student = await this.studentRepository.findById(studentId);
+    if (!student) {
+      throw new NotFoundException(`Student with ID ${studentId} not found`);
+    }
+
+    const now = new Date();
+    const lastActivity = student.lastCodingActivity;
+
+    if (!lastActivity) {
+      // First coding activity
+      return this.studentRepository.findByIdAndUpdate(studentId, {
+        codingStreak: 1,
+        lastCodingActivity: now,
+      });
+    }
+
+    const timeDiff = now.getTime() - lastActivity.getTime();
+    const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+
+    if (daysDiff === 0) {
+      // Same day, no change to streak
+      return student;
+    } else if (daysDiff === 1) {
+      // Consecutive day, increment streak
+      return this.studentRepository.findByIdAndUpdate(studentId, {
+        codingStreak: student.codingStreak + 1,
+        lastCodingActivity: now,
+      });
+    } else {
+      // Streak broken, reset to 1
+      return this.studentRepository.findByIdAndUpdate(studentId, {
+        codingStreak: 1,
+        lastCodingActivity: now,
+      });
+    }
+  }
+
+  async getCodingStreak(studentId: string): Promise<number> {
+    const student = await this.studentRepository.findById(studentId);
+    if (!student) {
+      throw new NotFoundException(`Student with ID ${studentId} not found`);
+    }
+    return student.codingStreak;
+  }
+
+  async addCoinsAndUpdateTotal(
+    studentId: string,
+    amount: number,
+  ): Promise<StudentDocument> {
+    const student = await this.studentRepository.findById(studentId);
+    if (!student) {
+      throw new NotFoundException(`Student with ID ${studentId} not found`);
+    }
+
+    const newCoins = student.coins + amount;
+    const newTotalCoinsEarned = student.totalCoinsEarned + amount;
+
+    return this.studentRepository.findByIdAndUpdate(studentId, {
+      coins: newCoins,
+      totalCoinsEarned: newTotalCoinsEarned,
+    });
+  }
+
+  async updateTotalTimeSpent(
+    studentId: string,
+    minutes: number,
+  ): Promise<StudentDocument> {
+    const student = await this.studentRepository.findById(studentId);
+    if (!student) {
+      throw new NotFoundException(`Student with ID ${studentId} not found`);
+    }
+
+    const newTotalTimeSpent = student.totalTimeSpent + minutes;
+    return this.studentRepository.findByIdAndUpdate(studentId, {
+      totalTimeSpent: newTotalTimeSpent,
+    });
+  }
+
+  async getTotalCoinsEarned(studentId: string): Promise<number> {
+    const student = await this.studentRepository.findById(studentId);
+    if (!student) {
+      throw new NotFoundException(`Student with ID ${studentId} not found`);
+    }
+    return student.totalCoinsEarned;
+  }
+
+  async findByUserId(userId: string): Promise<StudentDocument> {
+    return this.studentRepository.findByUserId(userId);
+  }
+
+  async findByEmail(email: string): Promise<StudentDocument> {
+    return this.studentRepository.findByEmail(email);
   }
 }

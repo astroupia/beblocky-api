@@ -59,4 +59,12 @@ export class ParentRepository {
 
     return parent;
   }
+
+  async findByUserId(userId: string): Promise<ParentDocument> {
+    const parent = await this.parentModel.findOne({ userId }).exec();
+    if (!parent) {
+      throw new NotFoundException(`Parent with userId ${userId} not found`);
+    }
+    return parent;
+  }
 }

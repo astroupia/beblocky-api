@@ -7,7 +7,7 @@ export enum AdminAccessLevel {
 }
 
 export interface IAdmin {
-  userId: Types.ObjectId;
+  userId: string; // String ID from better-auth
   accessLevel: AdminAccessLevel;
   managedOrganizations: Types.ObjectId[];
   createdAt: Date;
@@ -23,3 +23,8 @@ export type IUpdateAdminDto = Partial<IUpdateUserDto> & {
   accessLevel?: AdminAccessLevel;
   managedOrganizations?: Types.ObjectId[];
 };
+
+// Export actual DTOs and entities from the admin module
+export * from '../../admin/entities/admin.entity';
+export * from '../../admin/dtos/create-admin.dto';
+export * from '../../admin/dtos/update-admin.dto';

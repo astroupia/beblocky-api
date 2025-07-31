@@ -1,5 +1,4 @@
 import { Types } from 'mongoose';
-import { ICreateLessonDto, ICreateSlideDto } from '..';
 
 export enum CourseSubscriptionType {
   FREE = 'free',
@@ -49,10 +48,58 @@ export interface ICreateCourseWithContentDto {
   courseTitle: string;
   courseDescription: string;
   courseLanguage: string;
-  lessons?: ICreateLessonDto[];
-  slides?: ICreateSlideDto[];
+  lessons?: any[]; // Simplified to avoid import conflicts
+  slides?: any[]; // Simplified to avoid import conflicts
   subType?: CourseSubscriptionType;
   status?: CourseStatus;
   rating?: number;
   language?: string;
 }
+
+// Course Rating Types
+// Rating values are now simple numbers (1-5) instead of enum
+
+export interface ICourseRating {
+  courseId: Types.ObjectId;
+  userId: string; // String ID from better-auth
+  rating: number; // Use number instead of RatingValue enum
+  review?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ICreateCourseRatingDto {
+  rating: number; // Use number instead of RatingValue enum
+  review?: string;
+}
+
+export type IUpdateCourseRatingDto = Partial<ICreateCourseRatingDto>;
+
+export interface ICourseRatingResponse {
+  id: string;
+  courseId: string;
+  userId: string;
+  rating: number; // Use number instead of RatingValue enum
+  review?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ICourseRatingStats {
+  averageRating: number;
+  totalRatings: number;
+  ratingDistribution: {
+    [key: number]: number;
+  };
+  userRating?: number; // Use number instead of RatingValue enum
+  userReview?: string;
+}
+
+// Export actual DTOs and entities from the course module
+export * from '../../course/entities/course.entity';
+export * from '../../course/entities/course-rating.entity';
+export * from '../../course/dtos/create-course.dto';
+export * from '../../course/dtos/create-course-with-content.dto';
+export * from '../../course/dtos/create-course-rating.dto';
+export * from '../../course/dtos/update-course-rating.dto';
+export * from '../../course/dtos/course-rating-response.dto';

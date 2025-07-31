@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Teacher, TeacherDocument } from '../entities/teacher.entity';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class TeacherRepository {
@@ -11,7 +12,7 @@ export class TeacherRepository {
   ) {}
 
   private convertToObjectId(id: string | Types.ObjectId): Types.ObjectId {
-    return typeof id === 'string' ? new Types.ObjectId(id) : id;
+    return typeof id === 'string' ? createObjectId(id, 'id') : id;
   }
 
   private convertArrayToObjectIds(
@@ -92,8 +93,18 @@ export class TeacherRepository {
     organizationId: string,
   ): Promise<TeacherDocument[]> {
     return this.teacherModel
-      .find({ organizationId: this.convertToObjectId(organizationId) })
+      .find({
+        organizationId: createObjectId(organizationId, 'organizationId'),
+      })
       .exec();
+  }
+
+  async findByUserId(userId: string): Promise<TeacherDocument> {
+    const teacher = await this.teacherModel.findOne({ userId }).exec();
+    if (!teacher) {
+      throw new NotFoundException(`Teacher with userId ${userId} not found`);
+    }
+    return teacher;
   }
 
   async addCourse(
@@ -103,7 +114,7 @@ export class TeacherRepository {
     const teacher = await this.teacherModel
       .findByIdAndUpdate(
         teacherId,
-        { $addToSet: { courses: new Types.ObjectId(courseId) } },
+        { $addToSet: { courses: createObjectId(courseId, 'courseId') } },
         { new: true },
       )
       .exec();
@@ -120,7 +131,7 @@ export class TeacherRepository {
     const teacher = await this.teacherModel
       .findByIdAndUpdate(
         teacherId,
-        { $pull: { courses: new Types.ObjectId(courseId) } },
+        { $pull: { courses: createObjectId(courseId, 'courseId') } },
         { new: true },
       )
       .exec();

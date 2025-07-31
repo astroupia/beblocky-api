@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { OrganizationService } from '../services/organization.service';
 import { CreateOrganizationDto } from '../dtos/create-organization.dto';
+import { CreateOrganizationFromUserDto } from '../dtos/create-organization-from-user.dto';
 import { UpdateOrganizationDto } from '../dtos/update-organization.dto';
 import { OrganizationDocument } from '../entities/organization.entity';
 
@@ -21,6 +22,15 @@ export class OrganizationController {
     @Body() createOrganizationDto: CreateOrganizationDto,
   ): Promise<OrganizationDocument> {
     return this.organizationService.create(createOrganizationDto);
+  }
+
+  @Post('from-user')
+  createFromUser(
+    @Body() createOrganizationFromUserDto: CreateOrganizationFromUserDto,
+  ): Promise<OrganizationDocument> {
+    return this.organizationService.createFromUser(
+      createOrganizationFromUserDto,
+    );
   }
 
   @Get(':id')
@@ -49,5 +59,10 @@ export class OrganizationController {
   @Get('email/:email')
   findByEmail(@Param('email') email: string): Promise<OrganizationDocument> {
     return this.organizationService.findByEmail(email);
+  }
+
+  @Get('user/:userId')
+  findByUserId(@Param('userId') userId: string): Promise<OrganizationDocument> {
+    return this.organizationService.findByUserId(userId);
   }
 }

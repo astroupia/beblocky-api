@@ -14,11 +14,12 @@ export interface ITimeSlot {
 }
 
 export interface ITeacher {
+  userId: string; // String ID from better-auth
   qualifications: IQualification[];
-  availability: Map<string, ITimeSlot[]>;
+  availability: Record<string, ITimeSlot[]>;
   rating: number[];
   courses: Types.ObjectId[];
-  organizationId: Types.ObjectId;
+  organizationId?: Types.ObjectId;
   languages: string[];
   subscription?: Types.ObjectId;
   createdAt: Date;
@@ -27,13 +28,18 @@ export interface ITeacher {
 
 export interface ICreateTeacherDto extends ICreateUserDto {
   qualifications?: IQualification[];
-  availability?: Map<string, ITimeSlot[]>;
+  availability?: Record<string, ITimeSlot[]>;
   rating?: number[];
   courses?: Types.ObjectId[];
-  organizationId: Types.ObjectId;
+  organizationId?: Types.ObjectId;
   languages?: string[];
   subscription?: Types.ObjectId;
 }
 
 export type IUpdateTeacherDto = Partial<ICreateTeacherDto> &
   Partial<IUpdateUserDto>;
+
+// Export actual DTOs and entities from the teacher module
+export * from '../../teacher/entities/teacher.entity';
+export * from '../../teacher/dtos/create-teacher.dto';
+export * from '../../teacher/dtos/update-teacher.dto';

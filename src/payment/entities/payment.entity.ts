@@ -25,8 +25,8 @@ class Item {
 
 @Schema({ timestamps: true })
 export class Payment {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId: Types.ObjectId;
+  @Prop({ type: String, ref: 'User', required: true })
+  userId: string; // String ID from better-auth
 
   @Prop({ required: true })
   amount: number;

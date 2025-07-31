@@ -11,6 +11,7 @@ export enum UserRole {
 
 // Domain entity interface
 export interface User {
+  _id: string; // String ID from better-auth
   email: string;
   name: string;
   emailVerified: boolean;
@@ -21,8 +22,16 @@ export interface User {
 }
 
 // Mongoose schema class
-@Schema({ timestamps: true, discriminatorKey: 'role', collection: 'users' })
+@Schema({
+  timestamps: true,
+  discriminatorKey: 'role',
+  collection: 'users',
+  _id: false, // Disable automatic ObjectId generation
+})
 export class UserSchemaClass implements User {
+  @Prop({ type: String, required: true })
+  _id: string; // Explicit string ID
+
   @Prop({ required: true, unique: true })
   email: string;
 

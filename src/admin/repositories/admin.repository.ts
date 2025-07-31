@@ -51,4 +51,12 @@ export class AdminRepository {
   async findByAccessLevel(accessLevel: string): Promise<AdminDocument[]> {
     return this.adminModel.find({ accessLevel }).exec();
   }
+
+  async findByUserId(userId: string): Promise<AdminDocument> {
+    const admin = await this.adminModel.findOne({ userId }).exec();
+    if (!admin) {
+      throw new NotFoundException(`Admin with userId ${userId} not found`);
+    }
+    return admin;
+  }
 }

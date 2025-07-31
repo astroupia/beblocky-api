@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Course, CourseDocument } from '../entities/course.entity';
 import { CreateCourseDto } from '../dtos/create-course.dto';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class CourseRepository {
@@ -12,7 +13,7 @@ export class CourseRepository {
   ) {}
 
   private convertToObjectId(id: string | Types.ObjectId): Types.ObjectId {
-    return typeof id === 'string' ? new Types.ObjectId(id) : id;
+    return typeof id === 'string' ? createObjectId(id, 'id') : id;
   }
 
   private convertArrayToObjectIds(

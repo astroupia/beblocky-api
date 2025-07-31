@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { AdminService } from '../services/admin.service';
 import { CreateAdminDto } from '../dtos/create-admin.dto';
+import { CreateAdminFromUserDto } from '../dtos/create-admin-from-user.dto';
 import { UpdateAdminDto } from '../dtos/update-admin.dto';
 import { AdminDocument } from '../entities/admin.entity';
 
@@ -19,6 +20,13 @@ export class AdminController {
   @Post()
   create(@Body() createAdminDto: CreateAdminDto): Promise<AdminDocument> {
     return this.adminService.create(createAdminDto);
+  }
+
+  @Post('from-user')
+  createFromUser(
+    @Body() createAdminFromUserDto: CreateAdminFromUserDto,
+  ): Promise<AdminDocument> {
+    return this.adminService.createFromUser(createAdminFromUserDto);
   }
 
   @Get(':id')
@@ -47,5 +55,10 @@ export class AdminController {
   @Get('access-level/:level')
   findByAccessLevel(@Param('level') level: string): Promise<AdminDocument[]> {
     return this.adminService.findByAccessLevel(level);
+  }
+
+  @Get('user/:userId')
+  findByUserId(@Param('userId') userId: string): Promise<AdminDocument> {
+    return this.adminService.findByUserId(userId);
   }
 }

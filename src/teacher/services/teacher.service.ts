@@ -1,28 +1,92 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  forwardRef,
+  Inject,
+} from '@nestjs/common';
 import { TeacherRepository } from '../repositories/teacher.repository';
 import { CreateTeacherDto } from '../dtos/create-teacher.dto';
+import { CreateTeacherFromUserDto } from '../dtos/create-teacher-from-user.dto';
 import { UpdateTeacherDto } from '../dtos/update-teacher.dto';
 import { Teacher, TeacherDocument } from '../entities/teacher.entity';
 import { Types } from 'mongoose';
+import { createObjectId } from '../../utils/object-id.utils';
+import { createUserId } from '../../utils/user-id.utils';
+import { UserService } from '../../user/services/user.service';
 
 @Injectable()
 export class TeacherService {
-  constructor(private readonly teacherRepository: TeacherRepository) {}
+  constructor(
+    private readonly teacherRepository: TeacherRepository,
+    @Inject(forwardRef(() => UserService))
+    private readonly userService: UserService,
+  ) {}
 
   private mapDtoToEntity(dto: Partial<CreateTeacherDto>): Partial<Teacher> {
-    const entity: Partial<Teacher> = { ...dto };
+    const entity: Partial<Teacher> = {
+      organizationId: undefined,
+      courses: undefined,
+      subscription: undefined,
+    };
+
+    // Copy basic fields
+    if (dto.qualifications) entity.qualifications = dto.qualifications;
+    if (dto.rating) entity.rating = dto.rating;
+    if (dto.languages) entity.languages = dto.languages;
 
     if (dto.organizationId) {
-      entity.organizationId = new Types.ObjectId(dto.organizationId);
+      entity.organizationId = createObjectId(
+        dto.organizationId,
+        'organizationId',
+      );
     }
 
     if (dto.courses) {
-      entity.courses = dto.courses.map((id) => new Types.ObjectId(id));
+      entity.courses = dto.courses.map((id) => createObjectId(id, 'courseId'));
     }
 
     if (dto.subscription) {
-      entity.subscription = new Types.ObjectId(dto.subscription);
+      entity.subscription = createObjectId(dto.subscription, 'subscription');
     }
+
+    // Handle availability conversion
+    if (dto.availability) {
+      entity.availability = dto.availability;
+    }
+
+    return entity;
+  }
+
+  private mapFromUserDtoToEntity(
+    dto: CreateTeacherFromUserDto,
+  ): Partial<Teacher> {
+    const entity: Partial<Teacher> = {
+      userId: createUserId(dto.userId, 'userId'),
+      courses: undefined,
+      subscription: undefined,
+    };
+
+    if (dto.organizationId) {
+      entity.organizationId = createObjectId(
+        dto.organizationId,
+        'organizationId',
+      );
+    }
+
+    if (dto.courses) {
+      entity.courses = dto.courses.map((id) => createObjectId(id, 'courseId'));
+    }
+
+    if (dto.subscription) {
+      entity.subscription = createObjectId(dto.subscription, 'subscription');
+    }
+
+    // Copy other fields
+    if (dto.qualifications) entity.qualifications = dto.qualifications;
+    if (dto.availability) entity.availability = dto.availability;
+    if (dto.rating) entity.rating = dto.rating;
+    if (dto.languages) entity.languages = dto.languages;
 
     return entity;
   }
@@ -30,6 +94,37 @@ export class TeacherService {
   async create(createTeacherDto: CreateTeacherDto): Promise<TeacherDocument> {
     const entity = this.mapDtoToEntity(createTeacherDto);
     return this.teacherRepository.create(entity);
+  }
+
+  async createFromUser(
+    createTeacherFromUserDto: CreateTeacherFromUserDto,
+  ): Promise<TeacherDocument> {
+    try {
+      // Get user information to include email
+      const user = await this.userService.findOne(
+        createTeacherFromUserDto.userId,
+      );
+
+      const entity = this.mapFromUserDtoToEntity(createTeacherFromUserDto);
+      const createdTeacher = await this.teacherRepository.create(entity);
+
+      // Return teacher with user email included
+      return {
+        ...createdTeacher.toObject(),
+        user: {
+          _id: user._id,
+          email: user.email,
+          name: user.name,
+          emailVerified: user.emailVerified,
+          role: user.role,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+      } as TeacherDocument;
+    } catch (error) {
+      console.error('Error in createFromUser:', error);
+      throw error;
+    }
   }
 
   async findAll(): Promise<TeacherDocument[]> {
@@ -67,6 +162,10 @@ export class TeacherService {
     organizationId: string,
   ): Promise<TeacherDocument[]> {
     return this.teacherRepository.findByOrganizationId(organizationId);
+  }
+
+  async findByUserId(userId: string): Promise<TeacherDocument> {
+    return this.teacherRepository.findByUserId(userId);
   }
 
   async addCourse(

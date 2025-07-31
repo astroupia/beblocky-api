@@ -60,4 +60,16 @@ export class OrganizationRepository {
 
     return organization;
   }
+
+  async findByUserId(userId: string): Promise<OrganizationDocument> {
+    const organization = await this.organizationModel
+      .findOne({ userId })
+      .exec();
+    if (!organization) {
+      throw new NotFoundException(
+        `Organization with userId ${userId} not found`,
+      );
+    }
+    return organization;
+  }
 }

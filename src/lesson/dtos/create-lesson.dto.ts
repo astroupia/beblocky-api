@@ -5,10 +5,10 @@ import {
   IsNumber,
   IsEnum,
   IsArray,
-  IsMongoId,
 } from 'class-validator';
 import { Types } from 'mongoose';
 import { LessonDifficulty } from '../entities/lesson.entity';
+import { IsObjectId } from '../../common/decorators/is-object-id.decorator';
 
 export class CreateLessonDto {
   @IsString()
@@ -19,13 +19,13 @@ export class CreateLessonDto {
   @IsOptional()
   description?: string;
 
-  @IsMongoId()
+  @IsObjectId()
   @IsNotEmpty()
-  courseId: Types.ObjectId;
+  courseId: string;
 
   @IsArray()
   @IsOptional()
-  slides?: Types.ObjectId[];
+  slides?: string[];
 
   @IsEnum(LessonDifficulty)
   @IsOptional()

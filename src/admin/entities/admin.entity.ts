@@ -8,6 +8,7 @@ export enum AdminAccessLevel {
 
 // Domain entity
 export class Admin {
+  userId: string; // String ID from better-auth
   accessLevel: AdminAccessLevel;
   managedOrganizations: Types.ObjectId[];
 }
@@ -15,6 +16,9 @@ export class Admin {
 // Mongoose schema class
 @Schema({ timestamps: true })
 export class AdminSchemaClass {
+  @Prop({ type: String, required: true })
+  userId: string; // String ID from better-auth
+
   @Prop({
     type: String,
     enum: Object.values(AdminAccessLevel),

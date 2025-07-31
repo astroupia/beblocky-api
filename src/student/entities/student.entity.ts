@@ -13,7 +13,8 @@ export enum Gender {
 }
 
 // Domain entity
-export interface Student extends User {
+export interface Student {
+  userId: string; // String ID from better-auth
   dateOfBirth?: Date;
   grade?: number;
   gender?: Gender;
@@ -21,8 +22,13 @@ export interface Student extends User {
   parentId?: Types.ObjectId;
   enrolledCourses: Types.ObjectId[];
   coins: number;
+  codingStreak: number; // Current coding streak
+  lastCodingActivity: Date; // Last coding activity for streak
+  totalCoinsEarned: number; // Total coins earned across all courses
+  totalTimeSpent: number; // Total learning time in minutes
   goals?: string[];
   subscription?: string;
+  section?: string; // Class section (e.g., "A", "B", "1A")
   emergencyContact?: {
     name: string;
     relationship: string;
@@ -32,7 +38,10 @@ export interface Student extends User {
 
 // Mongoose schema class
 @Schema({ timestamps: true, collection: 'students' })
-export class StudentSchemaClass extends UserSchemaClass implements Student {
+export class StudentSchemaClass implements Student {
+  @Prop({ type: String, required: true })
+  userId: string; // String ID from better-auth
+
   @Prop()
   dateOfBirth?: Date;
 
@@ -54,11 +63,26 @@ export class StudentSchemaClass extends UserSchemaClass implements Student {
   @Prop({ default: 0 })
   coins: number;
 
+  @Prop({ default: 0 })
+  codingStreak: number;
+
+  @Prop({ default: null })
+  lastCodingActivity: Date;
+
+  @Prop({ default: 0 })
+  totalCoinsEarned: number;
+
+  @Prop({ default: 0 })
+  totalTimeSpent: number;
+
   @Prop({ type: [String], default: [] })
   goals?: string[];
 
   @Prop()
   subscription?: string;
+
+  @Prop()
+  section?: string;
 
   @Prop({
     type: {
@@ -75,9 +99,5 @@ export class StudentSchemaClass extends UserSchemaClass implements Student {
 }
 
 export const StudentSchema = SchemaFactory.createForClass(StudentSchemaClass);
-StudentSchema.pre('save', function (next) {
-  this.role = UserRole.STUDENT;
-  next();
-});
 
 export type StudentDocument = StudentSchemaClass & Document;
