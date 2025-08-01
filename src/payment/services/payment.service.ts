@@ -83,20 +83,40 @@ export class PaymentService {
         }
       }
 
-      const fallbackSave = {
-        ...createPaymentDto,
-        userId: createUserId(createPaymentDto.userId, 'userId'),
-        sessionId: lastError?.data?.sessionId || null,
-        transactionStatus: PaymentStatus.FAILED,
-      };
+      // Only save failed payment if we have a session ID or if this is the first attempt
+      if (lastError?.data?.sessionId) {
+        const fallbackSave = {
+          ...createPaymentDto,
+          userId: createUserId(createPaymentDto.userId, 'userId'),
+          sessionId: lastError.data.sessionId,
+          transactionStatus: PaymentStatus.FAILED,
+        };
 
-      paymentLogger.error({
-        event: 'Payment Session Failed After Retries',
-        userId: createPaymentDto.userId,
-        reason: lastError?.message || 'Unknown',
-      });
+        paymentLogger.error({
+          event: 'Payment Session Failed After Retries',
+          userId: createPaymentDto.userId,
+          reason: lastError?.message || 'Unknown',
+          sessionId: lastError.data.sessionId,
+        });
 
-      return this.paymentRepository.create(fallbackSave);
+        return this.paymentRepository.create(fallbackSave);
+      } else {
+        // If no session ID was generated, don't save to avoid duplicate null sessionId
+        paymentLogger.error({
+          event: 'Payment Session Failed - No Session ID Generated',
+          userId: createPaymentDto.userId,
+          reason: lastError?.message || 'Unknown',
+        });
+
+        throw new BadRequestException({
+          message: 'Failed to create payment session after multiple attempts',
+          error: {
+            details: lastError?.message || 'Unknown error',
+            code: 'PAYMENT_CREATION_FAILED',
+            userId: createPaymentDto.userId,
+          },
+        });
+      }
     } catch (error: any) {
       paymentLogger.error({
         event: 'ArifPay SDK Error',

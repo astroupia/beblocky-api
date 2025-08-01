@@ -78,9 +78,20 @@ export class Payment {
   @Prop({ type: String, unique: true, sparse: true })
   transactionId?: string | null;
 
-  @Prop({ type: String, unique: true, sparse: true })
+  @Prop({ type: String, unique: true, sparse: true, index: true })
   sessionId?: string | null;
 }
 
 export const PaymentSchema = SchemaFactory.createForClass(Payment);
+
+// Add compound index to ensure sessionId uniqueness only for non-null values
+PaymentSchema.index(
+  { sessionId: 1 },
+  {
+    unique: true,
+    sparse: true,
+    partialFilterExpression: { sessionId: { $type: 'string' } },
+  },
+);
+
 export type PaymentDocument = Payment & Document;
