@@ -47,6 +47,22 @@ export class PaymentService {
         beneficiaries: this.getPaymentBeneficiaries(),
       };
 
+      // Save request payload in variable and log it
+      const requestPayload = {
+        ...payload,
+        expireDate:
+          payload.expireDate instanceof Date
+            ? payload.expireDate.toISOString()
+            : payload.expireDate,
+      };
+
+      console.log('🔍 [ArifPay Debug] Request Payload:');
+      console.log(JSON.stringify(requestPayload, null, 2));
+      console.log(
+        '🔍 [ArifPay Debug] Beneficiaries:',
+        JSON.stringify(this.getPaymentBeneficiaries(), null, 2),
+      );
+
       let lastError: any;
 
       for (let attempt = 1; attempt <= 3; attempt++) {
@@ -73,8 +89,22 @@ export class PaymentService {
           });
 
           return result.data;
-        } catch (err) {
+        } catch (err: any) {
           lastError = err;
+          console.log(
+            `❌ [ArifPay Debug] Attempt ${attempt} failed:`,
+            err?.message || 'Unknown error',
+          );
+          if (err?.response) {
+            console.log(
+              `❌ [ArifPay Debug] Response Status:`,
+              err.response.status,
+            );
+            console.log(
+              `❌ [ArifPay Debug] Response Data:`,
+              JSON.stringify(err.response.data, null, 2),
+            );
+          }
           paymentLogger.warn({
             event: 'Payment Attempt Failed',
             attempt,
