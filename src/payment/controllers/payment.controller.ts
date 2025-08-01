@@ -62,4 +62,25 @@ export class PaymentController {
       data: response.data ?? null,
     });
   }
+
+  @Get('test/config')
+  testConfig() {
+    try {
+      const beneficiaries = this.paymentService.getPaymentBeneficiaries();
+      return {
+        status: 'success',
+        message: 'Configuration loaded successfully',
+        beneficiaries: beneficiaries,
+        hasArifPayKey: !!process.env.ARIFPAY_API_KEY,
+        hasBeneficiaries: !!process.env.PAYMENT_BENEFICIARIES,
+      };
+    } catch (error: any) {
+      return {
+        status: 'error',
+        message: error.message,
+        hasArifPayKey: !!process.env.ARIFPAY_API_KEY,
+        hasBeneficiaries: !!process.env.PAYMENT_BENEFICIARIES,
+      };
+    }
+  }
 }

@@ -13,6 +13,12 @@ import { Types } from 'mongoose';
 import { createObjectId } from '../../utils/object-id.utils';
 import { createUserId } from '../../utils/user-id.utils';
 import { UserService } from '../../user/services/user.service';
+import { SubscriptionService } from '../../subscription/services/subscription.service';
+import {
+  SubscriptionPlan,
+  SubscriptionStatus,
+  BillingCycle,
+} from '../../subscription/entities/subscription.entity';
 
 @Injectable()
 export class StudentService {
@@ -20,6 +26,7 @@ export class StudentService {
     private readonly studentRepository: StudentRepository,
     @Inject(forwardRef(() => UserService))
     private readonly userService: UserService,
+    private readonly subscriptionService: SubscriptionService,
   ) {}
 
   private mapDtoToEntity(dto: Partial<CreateStudentDto>): Partial<Student> {
@@ -89,6 +96,44 @@ export class StudentService {
     return entity;
   }
 
+  private async createFreeTierSubscription(userId: string): Promise<void> {
+    try {
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setFullYear(endDate.getFullYear() + 1); // 1 year from now
+
+      await this.subscriptionService.create({
+        userId: userId,
+        planName: SubscriptionPlan.FREE,
+        status: SubscriptionStatus.ACTIVE,
+        startDate: startDate,
+        endDate: endDate,
+        autoRenew: true,
+        price: 0,
+        currency: 'USD',
+        billingCycle: BillingCycle.MONTHLY,
+        features: [
+          'Basic access',
+          'Limited courses',
+          'Community support',
+          'Student learning tools',
+          'Progress tracking',
+        ],
+        lastPaymentDate: startDate,
+        nextBillingDate: new Date(
+          startDate.getTime() + 30 * 24 * 60 * 60 * 1000,
+        ), // 30 days
+        cancelAtPeriodEnd: false,
+      });
+    } catch (error) {
+      console.error(
+        'Error creating free tier subscription for student:',
+        error,
+      );
+      // Don't throw error to avoid breaking student creation
+    }
+  }
+
   async create(createStudentDto: CreateStudentDto): Promise<StudentDocument> {
     const entity = this.mapDtoToEntity(createStudentDto);
     return this.studentRepository.create(entity);
@@ -105,6 +150,9 @@ export class StudentService {
 
       const entity = this.mapFromUserDtoToEntity(createStudentFromUserDto);
       const createdStudent = await this.studentRepository.create(entity);
+
+      // Create free tier subscription for the student
+      await this.createFreeTierSubscription(createStudentFromUserDto.userId);
 
       // Return student with user email included
       return {

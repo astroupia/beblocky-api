@@ -27,7 +27,7 @@ export class PaymentService {
     ]);
   }
 
-  getPaymentBeneficiaries(): any {
+  getPaymentBeneficiaries(): Record<string, unknown> {
     const raw = this.configService.get<string>('PAYMENT_BENEFICIARIES');
     if (!raw) throw new Error('PAYMENT_BENEFICIARIES is not set');
     try {
@@ -97,14 +97,28 @@ export class PaymentService {
       });
 
       return this.paymentRepository.create(fallbackSave);
-    } catch (error) {
+    } catch (error: any) {
       paymentLogger.error({
         event: 'ArifPay SDK Error',
         message: error,
+        userId: createPaymentDto.userId,
       });
+
+      // Provide more specific error messages
+      let errorMessage = 'Failed to create payment session';
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
       throw new BadRequestException({
-        message: 'Failed to create payment session',
-        error: error,
+        message: errorMessage,
+        error: {
+          details: error?.message || 'Unknown error',
+          code: error?.code || 'UNKNOWN',
+          userId: createPaymentDto.userId,
+        },
       });
     }
   }
