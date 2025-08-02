@@ -55,8 +55,7 @@ export class CreatePaymentDto {
   notifyUrl: string;
 
   @IsNumber()
-  @IsOptional()
-  phone?: number;
+  phone: number;
 
   @IsEmail()
   @IsOptional()

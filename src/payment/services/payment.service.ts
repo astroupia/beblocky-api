@@ -42,8 +42,30 @@ export class PaymentService {
   ): Promise<CheckoutSessionResponse['data'] | PaymentDocument> {
     try {
       const { createCheckoutSession } = await import('arifpay-express');
+
+      // Map payment methods to ArifPay format
+      const mapPaymentMethods = (methods: string[]): string[] => {
+        const methodMap: Record<string, string> = {
+          TELEBIRR: 'TELEBIRR',
+          AWASH: 'AWASH_BIRR',
+          AWASH_WALLET: 'AWASH_WALLET',
+          CBE: 'CBE_BIRR',
+          AMOLE: 'AMOLE',
+          BOA: 'BOA_BIRR',
+          KACHA: 'KACHA',
+          TELEBIRR_USSD: 'TELEBIRR_USSD',
+          HELLOCASH: 'HELLOCASH',
+          MPESSA: 'MPESSA',
+        };
+
+        return methods.map((method) => methodMap[method] || method);
+      };
+
       const payload = {
         ...createPaymentDto,
+        paymentMethods: mapPaymentMethods(
+          createPaymentDto.paymentMethods || [],
+        ),
         beneficiaries: this.getPaymentBeneficiaries(),
       };
 
