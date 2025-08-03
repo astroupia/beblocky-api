@@ -109,4 +109,9 @@ export class StudentController {
   findByUserId(@Param('userId') userId: string) {
     return this.studentService.findByUserId(userId);
   }
+
+  @Get('parent/:parentId')
+  findByParentId(@Param('parentId') parentId: string) {
+    return this.studentService.findByParentId(parentId);
+  }
 }

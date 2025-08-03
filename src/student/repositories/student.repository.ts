@@ -188,4 +188,11 @@ export class StudentRepository {
 
     return student[0] as StudentDocument;
   }
+
+  async findByParentId(parentId: string): Promise<StudentDocument[]> {
+    return this.studentModel
+      .find({ parentId: this.convertToObjectId(parentId) })
+      .populate('userId', 'email name')
+      .exec();
+  }
 }

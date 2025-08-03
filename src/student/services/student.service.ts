@@ -339,4 +339,8 @@ export class StudentService {
   async findByEmail(email: string): Promise<StudentDocument> {
     return this.studentRepository.findByEmail(email);
   }
+
+  async findByParentId(parentId: string): Promise<StudentDocument[]> {
+    return this.studentRepository.findByParentId(parentId);
+  }
 }

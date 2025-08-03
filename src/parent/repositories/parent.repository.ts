@@ -19,7 +19,7 @@ export class ParentRepository {
     const parent = await this.parentModel.findById(id).exec();
 
     if (!parent) {
-      throw new NotFoundException(`Parent wiht ID ${id} not found`);
+      throw new NotFoundException(`Parent with ID ${id} not found`);
     }
 
     return parent;
@@ -65,6 +65,22 @@ export class ParentRepository {
     if (!parent) {
       throw new NotFoundException(`Parent with userId ${userId} not found`);
     }
+    return parent;
+  }
+
+  async addChild(parentId: string, childId: string): Promise<ParentDocument> {
+    const parent = await this.parentModel
+      .findByIdAndUpdate(
+        parentId,
+        { $addToSet: { children: childId } },
+        { new: true },
+      )
+      .exec();
+
+    if (!parent) {
+      throw new NotFoundException(`Parent with ID ${parentId} not found`);
+    }
+
     return parent;
   }
 }
