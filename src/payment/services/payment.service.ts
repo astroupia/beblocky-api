@@ -41,6 +41,11 @@ export class PaymentService {
     createPaymentDto: CreatePaymentDto,
   ): Promise<CheckoutSessionResponse['data'] | PaymentDocument> {
     try {
+      // Ensure API_KEY is set for ArifPay package
+      if (!process.env.API_KEY && process.env.ARIFPAY_API_KEY) {
+        process.env.API_KEY = process.env.ARIFPAY_API_KEY;
+      }
+
       const { createCheckoutSession } = await import('arifpay-express');
 
       // Map payment methods to ArifPay format
@@ -123,8 +128,21 @@ export class PaymentService {
               err.response.status,
             );
             console.log(
+              `❌ [ArifPay Debug] Response Headers:`,
+              JSON.stringify(err.response.headers, null, 2),
+            );
+            console.log(
               `❌ [ArifPay Debug] Response Data:`,
               JSON.stringify(err.response.data, null, 2),
+            );
+            console.log(
+              `❌ [ArifPay Debug] Request URL:`,
+              err.response.config?.url || 'Unknown',
+            );
+          } else {
+            console.log(
+              `❌ [ArifPay Debug] Full Error Object:`,
+              JSON.stringify(err, null, 2),
             );
           }
           paymentLogger.warn({

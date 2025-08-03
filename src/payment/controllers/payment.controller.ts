@@ -71,15 +71,17 @@ export class PaymentController {
         status: 'success',
         message: 'Configuration loaded successfully',
         beneficiaries: beneficiaries,
-        hasArifPayKey: !!process.env.ARIFPAY_API_KEY,
+        hasArifPayKey: !!(process.env.API_KEY || process.env.ARIFPAY_API_KEY),
         hasBeneficiaries: !!process.env.PAYMENT_BENEFICIARIES,
+        apiKeyType: process.env.API_KEY ? 'API_KEY' : process.env.ARIFPAY_API_KEY ? 'ARIFPAY_API_KEY' : 'None',
       };
     } catch (error: any) {
       return {
         status: 'error',
         message: error.message,
-        hasArifPayKey: !!process.env.ARIFPAY_API_KEY,
+        hasArifPayKey: !!(process.env.API_KEY || process.env.ARIFPAY_API_KEY),
         hasBeneficiaries: !!process.env.PAYMENT_BENEFICIARIES,
+        apiKeyType: process.env.API_KEY ? 'API_KEY' : process.env.ARIFPAY_API_KEY ? 'ARIFPAY_API_KEY' : 'None',
       };
     }
   }
