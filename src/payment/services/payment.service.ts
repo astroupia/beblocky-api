@@ -29,12 +29,14 @@ export class PaymentService {
     const raw = this.configService.get<string>('PAYMENT_BENEFICIARIES');
     if (!raw) throw new Error('PAYMENT_BENEFICIARIES is not set');
     try {
-      return JSON.parse(raw);
+      return JSON.parse(raw) as Record<string, unknown>;
     } catch {
       throw new Error('Invalid PAYMENT_BENEFICIARIES JSON');
     }
   }
-  async createPayment(createPaymentDto: CreatePaymentDto): Promise<PaymentDocument | any> {
+  async createPayment(
+    createPaymentDto: CreatePaymentDto,
+  ): Promise<PaymentDocument | Record<string, unknown>> {
     const BASE_URL =
       process.env.NODE_ENV === 'production'
         ? 'https://gateway.arifpay.net'
@@ -103,7 +105,7 @@ export class PaymentService {
           status: 'PENDING',
         });
 
-        return response.data;
+        return response.data as Record<string, unknown>;
       } catch (err) {
         lastError = err as AxiosError;
         const errorData =
