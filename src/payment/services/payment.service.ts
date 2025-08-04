@@ -34,7 +34,7 @@ export class PaymentService {
       throw new Error('Invalid PAYMENT_BENEFICIARIES JSON');
     }
   }
-  async createPayment(createPaymentDto: CreatePaymentDto): Promise<any> {
+  async createPayment(createPaymentDto: CreatePaymentDto): Promise<PaymentDocument | any> {
     const BASE_URL =
       process.env.NODE_ENV === 'production'
         ? 'https://gateway.arifpay.net'
