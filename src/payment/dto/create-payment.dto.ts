@@ -92,4 +92,20 @@ export class CreatePaymentDto {
   @IsString()
   @IsOptional()
   sessionId?: string | null;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => Beneficiary)
+  beneficiaries: Beneficiary[];
+}
+
+export class Beneficiary {
+  @IsString()
+  accountNumber: string;
+
+  @IsString()
+  bank: string;
+
+  @IsNumber()
+  amount: number;
 }

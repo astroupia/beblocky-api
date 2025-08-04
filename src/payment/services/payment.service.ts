@@ -10,6 +10,8 @@ import { PaymentDocument } from '../entities/payment.entity';
 import { createObjectId } from '../../utils/object-id.utils';
 import { createUserId } from '../../utils/user-id.utils';
 import { paymentLogger } from 'src/utils/logger';
+import axios, { AxiosError } from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class PaymentService {
@@ -36,181 +38,105 @@ export class PaymentService {
       throw new Error('Invalid PAYMENT_BENEFICIARIES JSON');
     }
   }
+  async createPayment(createPaymentDto: CreatePaymentDto): Promise<any> {
+    const BASE_URL =
+      process.env.NODE_ENV === 'production'
+        ? 'https://gateway.arifpay.net'
+        : 'https://gateway.arifpay.org';
 
-  async createPayment(
-    createPaymentDto: CreatePaymentDto,
-  ): Promise<CheckoutSessionResponse['data'] | PaymentDocument> {
-    try {
-      // Ensure API_KEY is set for ArifPay package
-      if (!process.env.API_KEY && process.env.ARIFPAY_API_KEY) {
-        process.env.API_KEY = process.env.ARIFPAY_API_KEY;
-      }
+    const API_KEY = process.env.ARIFPAY_API_KEY;
+    const BENEFICIARY_ACCOUNT = process.env.ARIFPAY_BENEFICIARY_ACCOUNT;
+    const BENEFICIARY_BANK = process.env.ARIFPAY_BENEFICIARY_BANK;
 
-      const { createCheckoutSession } = await import('arifpay-express');
+    const CANCEL_URL = process.env.CANCEL_URL;
+    const SUCCESS_URL = process.env.SUCCESS_URL;
+    const ERROR_URL = process.env.ERROR_URL;
+    const NOTIFY_URL = process.env.NOTIFY_URL;
 
-      // Map payment methods to ArifPay format
-      const mapPaymentMethods = (methods: string[]): string[] => {
-        const methodMap: Record<string, string> = {
-          TELEBIRR: 'TELEBIRR',
-          AWASH: 'AWASH_BIRR',
-          AWASH_WALLET: 'AWASH_WALLET',
-          CBE: 'CBE_BIRR',
-          AMOLE: 'AMOLE',
-          BOA: 'BOA_BIRR',
-          KACHA: 'KACHA',
-          TELEBIRR_USSD: 'TELEBIRR_USSD',
-          HELLOCASH: 'HELLOCASH',
-          MPESSA: 'MPESSA',
-        };
+    const headers = {
+      'Content-Type': 'application/json',
+      'x-arifpay-key': API_KEY,
+    };
 
-        return methods.map((method) => methodMap[method] || method);
-      };
-
-      const payload = {
-        ...createPaymentDto,
-        paymentMethods: mapPaymentMethods(
-          createPaymentDto.paymentMethods || [],
-        ),
-        beneficiaries: this.getPaymentBeneficiaries(),
-      };
-
-      // Save request payload in variable and log it
-      const requestPayload = {
-        ...payload,
-        expireDate:
-          payload.expireDate instanceof Date
-            ? payload.expireDate.toISOString()
-            : payload.expireDate,
-      };
-
-      console.log('🔍 [ArifPay Debug] Request Payload:');
-      console.log(JSON.stringify(requestPayload, null, 2));
-      console.log(
-        '🔍 [ArifPay Debug] Beneficiaries:',
-        JSON.stringify(this.getPaymentBeneficiaries(), null, 2),
-      );
-
-      let lastError: any;
-
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        try {
-          const result: CheckoutSessionResponse = await this.tryWithTimeout(
-            () => createCheckoutSession(payload),
-            5000,
-          );
-
-          const paymentToSave = {
-            ...createPaymentDto,
-            userId: createUserId(createPaymentDto.userId, 'userId'),
-            sessionId: result.data.sessionId,
-            transactionStatus: PaymentStatus.PENDING,
-          };
-
-          await this.paymentRepository.create(paymentToSave);
-
-          paymentLogger.info({
-            event: 'Payment Session Created',
-            userId: createPaymentDto.userId,
-            sessionId: result.data.sessionId,
-            status: 'PENDING',
-          });
-
-          return result.data;
-        } catch (err: any) {
-          lastError = err;
-          console.log(
-            `❌ [ArifPay Debug] Attempt ${attempt} failed:`,
-            err?.message || 'Unknown error',
-          );
-          if (err?.response) {
-            console.log(
-              `❌ [ArifPay Debug] Response Status:`,
-              err.response.status,
-            );
-            console.log(
-              `❌ [ArifPay Debug] Response Headers:`,
-              JSON.stringify(err.response.headers, null, 2),
-            );
-            console.log(
-              `❌ [ArifPay Debug] Response Data:`,
-              JSON.stringify(err.response.data, null, 2),
-            );
-            console.log(
-              `❌ [ArifPay Debug] Request URL:`,
-              err.response.config?.url || 'Unknown',
-            );
-          } else {
-            console.log(
-              `❌ [ArifPay Debug] Full Error Object:`,
-              JSON.stringify(err, null, 2),
-            );
-          }
-          paymentLogger.warn({
-            event: 'Payment Attempt Failed',
-            attempt,
-            reason: err,
-          });
-        }
-      }
-
-      // Only save failed payment if we have a session ID or if this is the first attempt
-      if (lastError?.data?.sessionId) {
-        const fallbackSave = {
-          ...createPaymentDto,
-          userId: createUserId(createPaymentDto.userId, 'userId'),
-          sessionId: lastError.data.sessionId,
-          transactionStatus: PaymentStatus.FAILED,
-        };
-
-        paymentLogger.error({
-          event: 'Payment Session Failed After Retries',
-          userId: createPaymentDto.userId,
-          reason: lastError?.message || 'Unknown',
-          sessionId: lastError.data.sessionId,
-        });
-
-        return this.paymentRepository.create(fallbackSave);
-      } else {
-        // If no session ID was generated, don't save to avoid duplicate null sessionId
-        paymentLogger.error({
-          event: 'Payment Session Failed - No Session ID Generated',
-          userId: createPaymentDto.userId,
-          reason: lastError?.message || 'Unknown',
-        });
-
-        throw new BadRequestException({
-          message: 'Failed to create payment session after multiple attempts',
-          error: {
-            details: lastError?.message || 'Unknown error',
-            code: 'PAYMENT_CREATION_FAILED',
-            userId: createPaymentDto.userId,
-          },
-        });
-      }
-    } catch (error: any) {
-      paymentLogger.error({
-        event: 'ArifPay SDK Error',
-        message: error,
-        userId: createPaymentDto.userId,
-      });
-
-      // Provide more specific error messages
-      let errorMessage = 'Failed to create payment session';
-      if (error?.message) {
-        errorMessage = error.message;
-      } else if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-
-      throw new BadRequestException({
-        message: errorMessage,
-        error: {
-          details: error?.message || 'Unknown error',
-          code: error?.code || 'UNKNOWN',
-          userId: createPaymentDto.userId,
+    const payload = {
+      nonce: createPaymentDto.nonce || uuidv4(),
+      cancelUrl: CANCEL_URL,
+      successUrl: SUCCESS_URL,
+      errorUrl: ERROR_URL,
+      notifyUrl: NOTIFY_URL,
+      phone: createPaymentDto.phone?.toString(),
+      email: createPaymentDto.email,
+      expireDate: createPaymentDto.expireDate,
+      items: createPaymentDto.items,
+      paymentMethods: createPaymentDto.paymentMethods,
+      beneficiaries: [
+        {
+          accountNumber: BENEFICIARY_ACCOUNT,
+          bank: BENEFICIARY_BANK,
+          amount: createPaymentDto.amount,
         },
-      });
+      ],
+      lang: createPaymentDto.lang || 'EN',
+    };
+
+    let lastError: AxiosError | null = null;
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const response = await axios.post(
+          `${BASE_URL}/api/checkout/session`,
+          payload,
+          { headers },
+        );
+
+        const sessionId = response.data?.data?.sessionId;
+
+        const paymentToSave = {
+          ...createPaymentDto,
+          userId: new Types.ObjectId(createPaymentDto.userId),
+          sessionId: sessionId,
+          transactionStatus: PaymentStatus.PENDING,
+        };
+
+        await this.paymentRepository.create(paymentToSave);
+        paymentLogger.info({
+          event: 'Payment Session Created',
+          userId: createPaymentDto.userId,
+          sessionId,
+          attempt,
+          status: 'PENDING',
+        });
+
+        return response.data;
+      } catch (err) {
+        lastError = err as AxiosError;
+        const errorData =
+          lastError?.response?.data || lastError?.message || 'Unknown error';
+
+        paymentLogger.warn({
+          event: 'Payment Attempt Failed',
+          userId: createPaymentDto.userId,
+          attempt,
+          reason: errorData,
+        });
+      }
     }
+
+    paymentLogger.error({
+      event: 'Payment Session Failed After Retries',
+      userId: createPaymentDto.userId,
+      reason:
+        lastError?.response?.data || lastError?.message || 'Unknown failure',
+      status: lastError?.response?.status,
+      headers: lastError?.response?.headers,
+      url: lastError?.config?.url,
+      method: lastError?.config?.method,
+    });
+
+    throw new Error(
+      'Failed to create ArifPay payment session after 3 retries.',
+    );
+
   }
 
   async updatePaymentStatus(responseStatusDto: ResponseStatusDto): Promise<{

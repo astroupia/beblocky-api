@@ -49,7 +49,6 @@ import { StripeModule } from './stripe/stripe.module';
     ProgressModule,
     ClassModule,
     CertificateModule,
-
   ],
   controllers: [CloudinaryController],
   providers: [CloudinaryService],
