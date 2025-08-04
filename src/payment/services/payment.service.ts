@@ -1,14 +1,10 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { PaymentRepository } from '../repositories/payment.repository';
-import { CheckoutSessionResponse } from '../types/payment-response-types';
 import { ConfigService } from '@nestjs/config';
-import { Types } from 'mongoose';
 import { PaymentStatus } from 'src/common/payment-provider.enums';
 import { ResponseStatusDto } from '../dto/response-status.dto';
 import { PaymentDocument } from '../entities/payment.entity';
-import { createObjectId } from '../../utils/object-id.utils';
-import { createUserId } from '../../utils/user-id.utils';
 import { paymentLogger } from 'src/utils/logger';
 import axios, { AxiosError } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
@@ -93,7 +89,7 @@ export class PaymentService {
 
         const paymentToSave = {
           ...createPaymentDto,
-          userId: new Types.ObjectId(createPaymentDto.userId),
+          userId: createPaymentDto.userId, // Keep as string for better-auth compatibility
           sessionId: sessionId,
           transactionStatus: PaymentStatus.PENDING,
         };
@@ -136,7 +132,6 @@ export class PaymentService {
     throw new Error(
       'Failed to create ArifPay payment session after 3 retries.',
     );
-
   }
 
   async updatePaymentStatus(responseStatusDto: ResponseStatusDto): Promise<{
