@@ -21,69 +21,148 @@ export class StripeService {
       ),
     ]);
   }
+  // async stripeCheckOut(
+  //   items,
+  //   mode: 'payment' | 'subscription',
+  //   success_url: string | undefined,
+  //   cancel_url,
+  //   userId,
+  // ) {
+  //   const stripeSecretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
+  //   if (!stripeSecretKey) {
+  //     throw new Error('Stripe secret key is not configured');
+  //   }
+
+  //   const stripe = new Stripe(stripeSecretKey);
+
+  //   const line_items = [{ price: items.price, quantity: items.quantity }];
+  //   let lastError: any;
+
+  //   for (let attempt = 1; attempt <= 3; attempt++) {
+  //     try {
+  //       const result: Stripe.Checkout.Session = await this.tryWithTimeout(
+  //         () =>
+  //           stripe.checkout.sessions.create({
+  //             line_items,
+  //             mode,
+  //             success_url: success_url,
+  //             cancel_url: cancel_url,
+  //           }),
+  //         5000,
+  //       );
+  //       const paymentToSave = {
+  //         userId: userId,
+  //         sessionId: result.id,
+  //         amount: line_items[0].price * line_items[0].quantity,
+  //         cancelUrl: cancel_url,
+  //         successUrl: success_url,
+  //         transactionStatus: PaymentStatus.PENDING,
+  //         items: items,
+  //       };
+
+  //       await this.PaymentRepository.create(paymentToSave);
+
+  //       paymentLogger.info({
+  //         message: 'Stripe checkout session created successfully',
+  //         userId: userId,
+  //         sessionId: result.id,
+  //         url: result.url,
+  //       });
+  //       return {
+  //         sessionId: result.id,
+  //         url: result.url,
+  //       };
+  //     } catch (error) {
+  //       lastError = error;
+  //       paymentLogger.error({
+  //         message: `Attempt ${attempt} failed to create Stripe checkout session`,
+  //         userId: userId,
+  //         error: error instanceof Error ? error.message : String(error),
+  //       });
+  //       if (attempt === 3) {
+  //         throw new Error(
+  //           `Failed to create Stripe checkout session after 3 attempts: ${error}`,
+  //         );
+  //       }
+  //       await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+  //     }
+  //   }
+  // }
   async stripeCheckOut(
-    items,
+    items: { price: any; quantity: number }[],
     mode: 'payment' | 'subscription',
-    success_url: string | undefined,
-    cancel_url,
-    userId,
-  ) {
+    success_url: string,
+    cancel_url: string,
+    userId: string,
+  ): Promise<any> {
     const stripeSecretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
-    if (!stripeSecretKey) {
+    if (!stripeSecretKey)
       throw new Error('Stripe secret key is not configured');
-    }
 
     const stripe = new Stripe(stripeSecretKey);
+    if (!Array.isArray(items)) {
+      throw new Error('Items must be an array');
+    }
 
-    const line_items = [{ price: items.price, quantity: items.quantity }];
-    let lastError: any;
+    const line_items = items.map((item) => ({
+      price: item.price,
+      quantity: item.quantity,
+    }));
 
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        const result: Stripe.Checkout.Session = await this.tryWithTimeout(
+        const result = await this.tryWithTimeout(
           () =>
             stripe.checkout.sessions.create({
               line_items,
               mode,
-              success_url: success_url,
-              cancel_url: cancel_url,
+              success_url,
+              cancel_url,
             }),
           5000,
         );
+
         const paymentToSave = {
-          userId: userId,
+          userId,
           sessionId: result.id,
-          amount: line_items[0].price * line_items[0].quantity,
+          transactionStatus: PaymentStatus.PENDING,
+          items: items.map((item) => ({
+            stripePriceId: item.price,
+            quantity: item.quantity,
+          })),
           cancelUrl: cancel_url,
           successUrl: success_url,
-          transactionStatus: PaymentStatus.PENDING,
-          items: items,
+          expireDate: new Date(Date.now() + 10 * 60 * 1000),
+          notifyUrl: 'https://yourapp.com/stripe/webhook',
+          errorUrl: 'https://yourapp.com/payment/failed',
         };
 
-        await this.PaymentRepository.create(paymentToSave);
+        // await this.PaymentRepository.create(paymentToSave);
 
         paymentLogger.info({
-          message: 'Stripe checkout session created successfully',
-          userId: userId,
+          event: 'Stripe Checkout Session Created',
+          userId,
           sessionId: result.id,
           url: result.url,
         });
+
         return {
           sessionId: result.id,
           url: result.url,
         };
       } catch (error) {
-        lastError = error;
         paymentLogger.error({
-          message: `Attempt ${attempt} failed to create Stripe checkout session`,
-          userId: userId,
-          error: error instanceof Error ? error.message : String(error),
+          event: `Attempt ${attempt} Failed`,
+          userId,
+          reason: error instanceof Error ? error.message : String(error),
         });
+
         if (attempt === 3) {
           throw new Error(
             `Failed to create Stripe checkout session after 3 attempts: ${error}`,
           );
         }
+
         await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
       }
     }
