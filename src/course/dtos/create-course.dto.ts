@@ -12,15 +12,16 @@ import {
   CourseSubscriptionType,
   CourseStatus,
 } from '../entities/course.entity';
+import { IsObjectId } from '../../common/decorators/is-object-id.decorator';
 
 export class CreateCourseDto {
   @IsString()
   @IsNotEmpty()
-  title: string;
+  courseTitle: string;
 
   @IsString()
   @IsOptional()
-  description?: string;
+  courseDescription?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -28,15 +29,15 @@ export class CreateCourseDto {
 
   @IsArray()
   @IsOptional()
-  lessonIds?: Types.ObjectId[];
+  lessonIds?: string[];
 
   @IsArray()
   @IsOptional()
-  slideIds?: Types.ObjectId[];
+  slideIds?: string[];
 
   @IsArray()
   @IsOptional()
-  organization?: Types.ObjectId[];
+  organization?: string[];
 
   @IsEnum(CourseSubscriptionType)
   @IsOptional()

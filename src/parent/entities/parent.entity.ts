@@ -1,36 +1,46 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { RelationshipType } from '../../organization/entities/organization.entity';
 
 // Domain entity
 export class Parent {
+  userId: string; // String ID from better-auth
   children: Types.ObjectId[];
-  relationship: RelationshipType;
-  phoneNumber: string;
-  address: {
+  relationship?: RelationshipType;
+  phoneNumber?: string;
+  address?: {
     subCity: string;
     city: string;
     country: string;
   };
-  subscription: Types.ObjectId;
-  paymentHistory: Types.ObjectId[];
+  subscription?: Types.ObjectId;
+  paymentHistory?: Types.ObjectId[];
+}
+
+export enum RelationshipType {
+  MOTHER = 'mother',
+  FATHER = 'father',
+  GUARDIAN = 'guardian',
+  OTHER = 'other',
 }
 
 // Mongoose schema class
 @Schema({ timestamps: true, collection: 'parents' })
 export class ParentSchemaClass {
+  @Prop({ type: String, required: true })
+  userId: string; // String ID from better-auth
+
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Student' }] })
   children: Types.ObjectId[];
 
   @Prop({
     type: String,
     enum: Object.values(RelationshipType),
-    required: true,
+    required: false,
   })
-  relationship: RelationshipType;
+  relationship?: RelationshipType;
 
-  @Prop({ required: true })
-  phoneNumber: string;
+  @Prop({ required: false })
+  phoneNumber?: string;
 
   @Prop({
     type: {
@@ -38,9 +48,9 @@ export class ParentSchemaClass {
       city: String,
       country: String,
     },
-    required: true,
+    required: false,
   })
-  address: {
+  address?: {
     subCity: string;
     city: string;
     country: string;

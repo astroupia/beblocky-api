@@ -2,11 +2,11 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
 export enum CourseSubscriptionType {
-  FREE = 'active',
-  STARTER = 'starter',
-  BUILDER = 'builder',
-  PRO = 'pro-bundle',
-  ORGANIZATION = 'organization',
+  FREE = 'Free',
+  STARTER = 'Starter',
+  BUILDER = 'Builder',
+  PRO = 'Pro-Bundle',
+  ORGANIZATION = 'Organization',
 }
 
 export enum CourseStatus {

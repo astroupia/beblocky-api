@@ -15,12 +15,7 @@ import {
   CourseStatus,
 } from '../entities/course.entity';
 import { ThemeColorsDto } from '../../shared/dtos/theme-colors.dto';
-
-export enum LessonDifficulty {
-  BEGINNER = 'beginner',
-  INTERMEDIATE = 'intermediate',
-  ADVANCED = 'advanced',
-}
+import { LessonDifficulty } from '../../lesson/entities/lesson.entity';
 
 export class CreateLessonDto {
   @IsString()
@@ -62,8 +57,9 @@ export class CreateSlideDto {
   content?: string;
 
   @IsNumber()
-  @IsOptional()
-  order?: number;
+  @Min(0)
+  @IsNotEmpty()
+  order: number;
 
   @IsString()
   @IsOptional()
@@ -115,14 +111,6 @@ export class CreateSlideDto {
 }
 
 export class CreateCourseWithContentDto {
-  @IsString()
-  @IsNotEmpty()
-  title: string;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
-
   @IsString()
   @IsNotEmpty()
   courseTitle: string;

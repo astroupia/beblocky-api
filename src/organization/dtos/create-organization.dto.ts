@@ -12,6 +12,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrganizationType } from '../entities/organization.entity';
+import { CreateUserDto } from 'src/user/dtos/create-user.dto';
 
 class AddressDto {
   @IsString()
@@ -88,11 +89,7 @@ class SettingsDto {
   academicYear?: AcademicYearDto;
 }
 
-export class CreateOrganizationDto {
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
+export class CreateOrganizationDto extends CreateUserDto {
   @IsEnum(OrganizationType)
   @IsNotEmpty()
   type: OrganizationType;
@@ -100,15 +97,18 @@ export class CreateOrganizationDto {
   @ValidateNested()
   @Type(() => AddressDto)
   @IsNotEmpty()
+  @IsOptional()
   address: AddressDto;
 
   @ValidateNested()
   @Type(() => ContactInfoDto)
   @IsNotEmpty()
+  @IsOptional()
   contactInfo?: ContactInfoDto;
 
   @ValidateNested()
   @Type(() => FeaturesDto)
+  @IsOptional()
   @IsOptional()
   features: FeaturesDto;
 

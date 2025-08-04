@@ -7,7 +7,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { RelationshipType } from '../../organization/entities/organization.entity';
+import { RelationshipType } from '../entities/parent.entity';
 import { Types } from 'mongoose';
 
 class AddressDto {

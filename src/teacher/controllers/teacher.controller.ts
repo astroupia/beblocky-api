@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { TeacherService } from '../services/teacher.service';
 import { CreateTeacherDto } from '../dtos/create-teacher.dto';
+import { CreateTeacherFromUserDto } from '../dtos/create-teacher-from-user.dto';
 import { UpdateTeacherDto } from '../dtos/update-teacher.dto';
 
 @Controller('teachers')
@@ -18,6 +19,11 @@ export class TeacherController {
   @Post()
   create(@Body() createTeacherDto: CreateTeacherDto) {
     return this.teacherService.create(createTeacherDto);
+  }
+
+  @Post('from-user')
+  createFromUser(@Body() createTeacherFromUserDto: CreateTeacherFromUserDto) {
+    return this.teacherService.createFromUser(createTeacherFromUserDto);
   }
 
   @Get()
@@ -43,6 +49,11 @@ export class TeacherController {
   @Get('organization/:organizationId')
   findByOrganizationId(@Param('organizationId') organizationId: string) {
     return this.teacherService.findByOrganizationId(organizationId);
+  }
+
+  @Get('user/:userId')
+  findByUserId(@Param('userId') userId: string) {
+    return this.teacherService.findByUserId(userId);
   }
 
   @Post(':id/courses/:courseId')

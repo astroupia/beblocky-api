@@ -4,17 +4,14 @@ import {
   Post,
   ValidationPipe,
   Res,
-  HttpStatus,
   Get,
   Param,
 } from '@nestjs/common';
 import { PaymentService } from '../services/payment.service';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { ResponseStatusDto } from '../dto/response-status.dto';
-import { log } from 'console';
-import { response, Response } from 'express';
-import { PaymentDocument } from '../entities/payment.entity';
-import { ParseObjectIdPipe } from '@nestjs/mongoose';
+import { Response } from 'express';
+
 /**
  * Controller responsible for handling payment creation and status updates.
  */
@@ -40,7 +37,7 @@ export class PaymentController {
   @Post()
   async createPayment(
     @Body(ValidationPipe) createPaymentDto: CreatePaymentDto,
-  ) {
+  ): Promise<any> {
     return this.paymentService.createPayment(createPaymentDto);
   }
 
@@ -64,5 +61,28 @@ export class PaymentController {
       message: response.message,
       data: response.data ?? null,
     });
+  }
+
+  @Get('test/config')
+  testConfig() {
+    try {
+      const beneficiaries = this.paymentService.getPaymentBeneficiaries();
+      return {
+        status: 'success',
+        message: 'Configuration loaded successfully',
+        beneficiaries: beneficiaries,
+        hasArifPayKey: !!(process.env.API_KEY || process.env.ARIFPAY_API_KEY),
+        hasBeneficiaries: !!process.env.PAYMENT_BENEFICIARIES,
+        apiKeyType: process.env.API_KEY ? 'API_KEY' : process.env.ARIFPAY_API_KEY ? 'ARIFPAY_API_KEY' : 'None',
+      };
+    } catch (error: any) {
+      return {
+        status: 'error',
+        message: error.message,
+        hasArifPayKey: !!(process.env.API_KEY || process.env.ARIFPAY_API_KEY),
+        hasBeneficiaries: !!process.env.PAYMENT_BENEFICIARIES,
+        apiKeyType: process.env.API_KEY ? 'API_KEY' : process.env.ARIFPAY_API_KEY ? 'ARIFPAY_API_KEY' : 'None',
+      };
+    }
   }
 }

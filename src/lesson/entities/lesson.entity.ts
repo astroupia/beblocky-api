@@ -2,16 +2,16 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
 export enum LessonDifficulty {
-  BEGINNER = 'beginner',
-  INTERMEDIATE = 'intermediate',
-  ADVANCED = 'advanced',
+  BEGINNER = 'Beginner',
+  INTERMEDIATE = 'Intermediate',
+  ADVANCED = 'Advanced',
 }
 
 // Domain entity
 export class Lesson {
   title: string;
   description?: string;
-  course: Types.ObjectId;
+  courseId: Types.ObjectId;
   slides: Types.ObjectId[];
   difficulty: LessonDifficulty;
   duration: number;
@@ -28,7 +28,7 @@ export class LessonSchemaClass {
   description: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Course', required: true })
-  course: Types.ObjectId;
+  courseId: Types.ObjectId;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Slide' }] })
   slides: Types.ObjectId[];

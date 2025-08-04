@@ -3,12 +3,22 @@ import { UserRepository } from '../repositories/user.repository';
 import { User } from '../entities/user.entity';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
-
+import { CloudinaryService } from '../../cloudinary/services/cloudinary.service';
 @Injectable()
 export class UserService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(
+    createUserDto: CreateUserDto,
+    file: Express.Multer.File,
+  ): Promise<User> {
+    if (file) {
+      const imageUrl = await this.cloudinaryService.uploadFile(file);
+      createUserDto.image = imageUrl;
+    }
     return this.userRepository.create(createUserDto);
   }
 

@@ -18,8 +18,8 @@ export class SlideRepository {
   async findById(id: string): Promise<SlideDocument> {
     const slide = await this.slideModel
       .findById(id)
-      .populate('course')
-      .populate('lesson')
+      .populate('courseId')
+      .populate('lessonId')
       .exec();
 
     if (!slide) {
@@ -56,19 +56,19 @@ export class SlideRepository {
 
   async findByCourseId(courseId: string): Promise<SlideDocument[]> {
     return this.slideModel
-      .find({ course: courseId })
-      .populate('course')
-      .populate('lesson')
+      .find({ courseId: courseId })
       .sort({ order: 1 })
       .exec();
   }
 
   async findByLessonId(lessonId: string): Promise<SlideDocument[]> {
     return this.slideModel
-      .find({ lesson: lessonId })
-      .populate('course')
-      .populate('lesson')
+      .find({ lessonId: lessonId })
       .sort({ order: 1 })
       .exec();
+  }
+
+  async findAll(): Promise<SlideDocument[]> {
+    return this.slideModel.find().sort({ order: 1 }).exec();
   }
 }

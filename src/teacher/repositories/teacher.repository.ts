@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Teacher, TeacherDocument } from '../entities/teacher.entity';
+import { createObjectId } from '../../utils/object-id.utils';
 
 @Injectable()
 export class TeacherRepository {
@@ -10,8 +11,31 @@ export class TeacherRepository {
     private readonly teacherModel: Model<TeacherDocument>,
   ) {}
 
+  private convertToObjectId(id: string | Types.ObjectId): Types.ObjectId {
+    return typeof id === 'string' ? createObjectId(id, 'id') : id;
+  }
+
+  private convertArrayToObjectIds(
+    ids: (string | Types.ObjectId)[] = [],
+  ): Types.ObjectId[] {
+    return ids.map((id) => this.convertToObjectId(id));
+  }
+
   async create(data: Partial<Teacher>): Promise<TeacherDocument> {
-    const createdTeacher = new this.teacherModel(data);
+    const teacherData = { ...data };
+
+    // Convert ID fields if they exist
+    if (data.organizationId) {
+      teacherData.organizationId = this.convertToObjectId(data.organizationId);
+    }
+    if (data.courses) {
+      teacherData.courses = this.convertArrayToObjectIds(data.courses);
+    }
+    if (data.subscription) {
+      teacherData.subscription = this.convertToObjectId(data.subscription);
+    }
+
+    const createdTeacher = new this.teacherModel(teacherData);
     return createdTeacher.save();
   }
 
@@ -31,8 +55,25 @@ export class TeacherRepository {
     id: string,
     updateData: Partial<Teacher>,
   ): Promise<TeacherDocument> {
+    const dataToUpdate = { ...updateData };
+
+    // Convert ID fields if they exist in the update data
+    if (updateData.organizationId) {
+      dataToUpdate.organizationId = this.convertToObjectId(
+        updateData.organizationId,
+      );
+    }
+    if (updateData.courses) {
+      dataToUpdate.courses = this.convertArrayToObjectIds(updateData.courses);
+    }
+    if (updateData.subscription) {
+      dataToUpdate.subscription = this.convertToObjectId(
+        updateData.subscription,
+      );
+    }
+
     const teacher = await this.teacherModel
-      .findByIdAndUpdate(id, updateData, { new: true })
+      .findByIdAndUpdate(id, dataToUpdate, { new: true })
       .exec();
     if (!teacher) {
       throw new NotFoundException(`Teacher with ID ${id} not found`);
@@ -52,8 +93,18 @@ export class TeacherRepository {
     organizationId: string,
   ): Promise<TeacherDocument[]> {
     return this.teacherModel
-      .find({ organizationId: new Types.ObjectId(organizationId) })
+      .find({
+        organizationId: createObjectId(organizationId, 'organizationId'),
+      })
       .exec();
+  }
+
+  async findByUserId(userId: string): Promise<TeacherDocument> {
+    const teacher = await this.teacherModel.findOne({ userId }).exec();
+    if (!teacher) {
+      throw new NotFoundException(`Teacher with userId ${userId} not found`);
+    }
+    return teacher;
   }
 
   async addCourse(
@@ -63,7 +114,7 @@ export class TeacherRepository {
     const teacher = await this.teacherModel
       .findByIdAndUpdate(
         teacherId,
-        { $addToSet: { courses: new Types.ObjectId(courseId) } },
+        { $addToSet: { courses: createObjectId(courseId, 'courseId') } },
         { new: true },
       )
       .exec();
@@ -80,7 +131,7 @@ export class TeacherRepository {
     const teacher = await this.teacherModel
       .findByIdAndUpdate(
         teacherId,
-        { $pull: { courses: new Types.ObjectId(courseId) } },
+        { $pull: { courses: createObjectId(courseId, 'courseId') } },
         { new: true },
       )
       .exec();

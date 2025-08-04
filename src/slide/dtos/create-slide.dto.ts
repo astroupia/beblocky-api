@@ -5,6 +5,7 @@ import {
   IsArray,
   ValidateNested,
   IsNumber,
+  Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Types } from 'mongoose';
@@ -20,8 +21,9 @@ export class CreateSlideDto {
   content?: string;
 
   @IsNumber()
-  @IsOptional()
-  order?: number;
+  @Min(0)
+  @IsNotEmpty()
+  order: number;
 
   @IsString()
   @IsOptional()

@@ -7,6 +7,8 @@ import { Types } from 'mongoose';
 import { PaymentStatus } from 'src/common/payment-provider.enums';
 import { ResponseStatusDto } from '../dto/response-status.dto';
 import { PaymentDocument } from '../entities/payment.entity';
+import { createObjectId } from '../../utils/object-id.utils';
+import { createUserId } from '../../utils/user-id.utils';
 import { paymentLogger } from 'src/utils/logger';
 import axios, { AxiosError } from 'axios';
 import { v4 as uuidv4 } from 'uuid';
@@ -27,7 +29,7 @@ export class PaymentService {
     ]);
   }
 
-  getPaymentBeneficiaries(): string {
+  getPaymentBeneficiaries(): Record<string, unknown> {
     const raw = this.configService.get<string>('PAYMENT_BENEFICIARIES');
     if (!raw) throw new Error('PAYMENT_BENEFICIARIES is not set');
     try {
@@ -134,6 +136,7 @@ export class PaymentService {
     throw new Error(
       'Failed to create ArifPay payment session after 3 retries.',
     );
+
   }
 
   async updatePaymentStatus(responseStatusDto: ResponseStatusDto): Promise<{
@@ -177,7 +180,7 @@ export class PaymentService {
       };
     }
 
-    if (existing.transactionStatus === 'SUCCESS') {
+    if (existing.transactionStatus === PaymentStatus.SUCCESS) {
       paymentLogger.info({
         event: 'No Update Needed',
         sessionId,

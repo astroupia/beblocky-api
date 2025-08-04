@@ -6,12 +6,14 @@ import { SlideRepository } from './repositories/slide.repository';
 import { SlideSchema } from './entities/slide.entity';
 import { CourseModule } from '../course/course.module';
 import { LessonModule } from '../lesson/lesson.module';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: 'Slide', schema: SlideSchema }]),
     forwardRef(() => CourseModule),
     forwardRef(() => LessonModule),
+    CloudinaryModule,
   ],
   controllers: [SlideController],
   providers: [SlideService, SlideRepository],

@@ -8,15 +8,9 @@ export enum OrganizationType {
   OTHER = 'other',
 }
 
-export enum RelationshipType {
-  MOTHER = 'mother',
-  FATHER = 'father',
-  GUARDIAN = 'guardian',
-  OTHER = 'other',
-}
-
 // Domain entity
 export class Organization {
+  userId: string; // String ID from better-auth
   name: string;
   type: OrganizationType;
   address: {
@@ -57,6 +51,9 @@ export class Organization {
 // Mongoose schema class
 @Schema({ timestamps: true, collection: 'organizations' })
 export class OrganizationSchemaClass {
+  @Prop({ type: String, required: true })
+  userId: string; // String ID from better-auth
+
   @Prop({ required: true })
   name: string;
 

@@ -7,6 +7,7 @@ export class Slide {
   content: string;
   courseId: Types.ObjectId;
   lessonId: Types.ObjectId;
+  order: number;
   titleFont?: string;
   startingCode?: string;
   solutionCode?: string;
@@ -29,10 +30,13 @@ export class SlideSchemaClass {
   content: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Course', required: true })
-  course: Types.ObjectId;
+  courseId: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'Lesson' })
-  lesson?: Types.ObjectId;
+  lessonId?: Types.ObjectId;
+
+  @Prop({ required: true, min: 0 })
+  order: number;
 
   @Prop({ required: true, default: 'Arial' })
   titleFont: string;

@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { StudentService } from '../services/student.service';
 import { CreateStudentDto } from '../dtos/create-student.dto';
+import { CreateStudentFromUserDto } from '../dtos/create-student-from-user.dto';
 import { UpdateStudentDto } from '../dtos/update-student.dto';
 
 @Controller('students')
@@ -18,6 +19,11 @@ export class StudentController {
   @Post()
   create(@Body() createStudentDto: CreateStudentDto) {
     return this.studentService.create(createStudentDto);
+  }
+
+  @Post('from-user')
+  createFromUser(@Body() createStudentFromUserDto: CreateStudentFromUserDto) {
+    return this.studentService.createFromUser(createStudentFromUserDto);
   }
 
   @Get()
@@ -61,5 +67,51 @@ export class StudentController {
   @Post(':id/goals')
   addGoal(@Param('id') id: string, @Body('goal') goal: string) {
     return this.studentService.addGoal(id, goal);
+  }
+
+  @Get(':id/streak')
+  getCodingStreak(@Param('id') id: string) {
+    return this.studentService.getCodingStreak(id);
+  }
+
+  @Patch(':id/activity')
+  updateCodingActivity(@Param('id') id: string) {
+    return this.studentService.updateCodingStreak(id);
+  }
+
+  @Get(':id/coins/total')
+  getTotalCoinsEarned(@Param('id') id: string) {
+    return this.studentService.getTotalCoinsEarned(id);
+  }
+
+  @Post(':id/coins/add')
+  addCoinsAndUpdateTotal(
+    @Param('id') id: string,
+    @Body('amount') amount: number,
+  ) {
+    return this.studentService.addCoinsAndUpdateTotal(id, amount);
+  }
+
+  @Patch(':id/time-spent')
+  updateTotalTimeSpent(
+    @Param('id') id: string,
+    @Body('minutes') minutes: number,
+  ) {
+    return this.studentService.updateTotalTimeSpent(id, minutes);
+  }
+
+  @Get('email/:email')
+  findByEmail(@Param('email') email: string) {
+    return this.studentService.findByEmail(email);
+  }
+
+  @Get('user/:userId')
+  findByUserId(@Param('userId') userId: string) {
+    return this.studentService.findByUserId(userId);
+  }
+
+  @Get('parent/:parentId')
+  findByParentId(@Param('parentId') parentId: string) {
+    return this.studentService.findByParentId(parentId);
   }
 }

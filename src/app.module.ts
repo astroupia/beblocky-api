@@ -12,6 +12,13 @@ import { ParentModule } from './parent/parent.module';
 import { AdminModule } from './admin/admin.module';
 import { TeacherModule } from './teacher/teacher.module';
 import { PaymentModule } from './payment/payment.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { ProgressModule } from './progress/progress.module';
+import { ClassModule } from './class/class.module';
+import { CertificateModule } from './certificate/certificate.module';
+import { CloudinaryController } from './cloudinary/controllers/cloudinary.controller';
+import { CloudinaryService } from './cloudinary/services/cloudinary.service';
+import { StripeModule } from './stripe/stripe.module';
 
 @Module({
   imports: [
@@ -36,7 +43,14 @@ import { PaymentModule } from './payment/payment.module';
     ParentModule,
     AdminModule,
     TeacherModule,
-    PaymentModule
+    PaymentModule,
+    CloudinaryModule,
+    StripeModule,
+    ProgressModule,
+    ClassModule,
+    CertificateModule,
   ],
+  controllers: [CloudinaryController],
+  providers: [CloudinaryService],
 })
 export class AppModule {}
