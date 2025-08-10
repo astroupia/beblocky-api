@@ -93,6 +93,7 @@ export class CreatePaymentDto {
   @IsOptional()
   sessionId?: string | null;
 
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => Beneficiary)
