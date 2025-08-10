@@ -83,6 +83,14 @@ export class LessonRepository {
       .exec();
   }
 
+  async findBySlideId(slideId: string): Promise<LessonDocument[]> {
+    return this.lessonModel
+      .find({ slides: createObjectId(slideId, 'slideId') })
+      .populate('courseId')
+      .populate('slides')
+      .exec();
+  }
+
   async findAll(): Promise<LessonDocument[]> {
     return this.lessonModel
       .find()

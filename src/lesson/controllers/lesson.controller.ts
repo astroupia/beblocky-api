@@ -22,6 +22,16 @@ export class LessonController {
     return this.lessonService.create(createLessonDto);
   }
 
+  @Get('course/:courseId')
+  findByCourseId(@Param('courseId') courseId: string): Promise<Lesson[]> {
+    return this.lessonService.findByCourseId(courseId);
+  }
+
+  @Get('slide/:slideId')
+  findBySlideId(@Param('slideId') slideId: string): Promise<Lesson[]> {
+    return this.lessonService.findBySlideId(slideId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string): Promise<Lesson> {
     return this.lessonService.findById(id);

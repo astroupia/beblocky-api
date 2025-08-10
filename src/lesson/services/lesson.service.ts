@@ -69,6 +69,10 @@ export class LessonService {
     return this.lessonRepository.findByCourseId(courseId);
   }
 
+  async findBySlideId(slideId: string): Promise<LessonDocument[]> {
+    return this.lessonRepository.findBySlideId(slideId);
+  }
+
   async findAll(): Promise<LessonDocument[]> {
     return this.lessonRepository.findAll();
   }
