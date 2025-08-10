@@ -1,40 +1,22 @@
-import { Module, Logger } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { UserListenerService } from '../../user/services/user-listener.service';
+import { UserModule } from '../../user/user.module';
+import { TeacherModule } from '../../teacher/teacher.module';
+import { AdminModule } from '../../admin/admin.module';
+import { StudentModule } from '../../student/student.module';
+import { ParentModule } from '../../parent/parent.module';
+import { OrganizationModule } from '../../organization/organization.module';
 
 @Module({
   imports: [
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: async (config: ConfigService): Promise<any> => {
-        const uri = config.get<string>('MONGO_URI');
-        const dbName = config.get<string>('MONGO_DB');
-
-        if (!uri || !dbName) {
-          throw new Error(
-            'MONGO_URI and MONGO_DB must be defined in environment variables',
-          );
-        }
-        const mongoose = await import('mongoose');
-        mongoose.connection.on('error', (error) => {
-          Logger.error('MongoDB connection error:', error);
-        });
-
-        mongoose.connection.on('connected', () => {
-          Logger.log('MongoDB connected successfully');
-        });
-        mongoose.connection.on('disconnected', () => {
-          Logger.warn('MongoDB disconnected');
-        });
-
-        return {
-          uri: uri,
-          dbName: dbName,
-        };
-      },
-    }),
+    forwardRef(() => UserModule),
+    forwardRef(() => TeacherModule),
+    forwardRef(() => AdminModule),
+    forwardRef(() => StudentModule),
+    forwardRef(() => ParentModule),
+    forwardRef(() => OrganizationModule),
   ],
-  exports: [MongooseModule],
+  providers: [UserListenerService],
 })
-export class DatabaseModule {}
+export class ListenersModule {}

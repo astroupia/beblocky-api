@@ -9,11 +9,14 @@ import {
   UseInterceptors,
   UploadedFile,
   Query,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -25,6 +28,15 @@ export class UserController {
     @Body() createUserDto: CreateUserDto,
   ) {
     return this.userService.create(createUserDto, file);
+  }
+
+  @Post('webhook/better-auth')
+  @HttpCode(HttpStatus.OK)
+  async handleBetterAuthWebhook(@Body() userData: any) {
+    // This endpoint can be called by Better-Auth when a new user is created
+    // You can configure Better-Auth to call this webhook
+    this.userService.handleBetterAuthUserCreated(userData);
+    return { success: true };
   }
 
   @Get()

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { CourseModule } from './course/course.module';
 import { UserModule } from './user/user.module';
 import { StudentModule } from './student/student.module';
@@ -19,11 +20,20 @@ import { CertificateModule } from './certificate/certificate.module';
 import { CloudinaryController } from './cloudinary/controllers/cloudinary.controller';
 import { CloudinaryService } from './cloudinary/services/cloudinary.service';
 import { StripeModule } from './stripe/stripe.module';
+import { ListenersModule } from './infrastructure/database/database.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    EventEmitterModule.forRoot({
+      // Global event emitter configuration
+      wildcard: false,
+      delimiter: '.',
+      maxListeners: 10,
+      verboseMemoryLeak: false,
+      ignoreErrors: false,
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -49,6 +59,7 @@ import { StripeModule } from './stripe/stripe.module';
     ProgressModule,
     ClassModule,
     CertificateModule,
+    ListenersModule,
   ],
   controllers: [CloudinaryController],
   providers: [CloudinaryService],
