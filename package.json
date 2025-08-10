@@ -21,7 +21,8 @@
     "migrate:user-ids": "node scripts/migrate-user-ids.js migrate",
     "test:user-ids": "node scripts/test-string-user-ids.js",
     "fix:teacher-index": "node scripts/fix-teacher-email-index.js",
-    "test:user-listener": "node scripts/test-user-listener.js"
+    "test:user-listener": "node scripts/test-user-listener.js",
+    "test:subscription-inheritance": "node scripts/test-subscription-inheritance.js"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.0",

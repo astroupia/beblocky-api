@@ -3,7 +3,6 @@ import {
   forwardRef,
   Inject,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { ParentRepository } from '../repositories/parent.repository';
 import { ParentDocument } from '../entities/parent.entity';
@@ -160,7 +159,7 @@ export class ParentService {
     return children;
   }
 
-  async getParentWithChildren(parentId: string) {
+  async getParentWithChildren(parentId: string): Promise<any> {
     const parent = await this.parentRepository.findById(parentId);
     if (!parent) {
       throw new NotFoundException(`Parent with ID ${parentId} not found`);
@@ -190,11 +189,19 @@ export class ParentService {
       throw new NotFoundException(`Parent with ID ${parentId} not found`);
     }
 
-    // 3. Check if student already exists for this user
+    // 3. Get parent's subscription to inherit
+    const parentSubscriptions = await this.subscriptionService.findByUserId(
+      parent.userId,
+    );
+    const parentActiveSubscription = parentSubscriptions.find(
+      (sub) => sub.status === SubscriptionStatus.ACTIVE,
+    );
+
+    // 4. Check if student already exists for this user
     let student;
     try {
       student = await this.studentService.findByUserId(user._id);
-    } catch (error) {
+    } catch {
       // Student doesn't exist, will create new one
     }
 
@@ -219,7 +226,16 @@ export class ParentService {
       });
     }
 
-    // 4. Update parent's children array
+    // 5. Handle subscription inheritance
+    let subscriptionInherited = false;
+    if (parentActiveSubscription) {
+      subscriptionInherited = await this.inheritParentSubscription(
+        student.userId,
+        parentActiveSubscription,
+      );
+    }
+
+    // 6. Update parent's children array
     const updatedParent = await this.parentRepository.addChild(
       parentId,
       student._id,
@@ -228,6 +244,71 @@ export class ParentService {
     return {
       parent: updatedParent,
       student: student,
+      subscriptionInherited,
+      parentSubscriptionPlan: parentActiveSubscription?.planName || null,
     };
+  }
+
+  /**
+   * Inherit parent's subscription for the child
+   */
+  private async inheritParentSubscription(
+    childUserId: string,
+    parentSubscription: any,
+  ): Promise<boolean> {
+    try {
+      // Check if child already has a subscription
+      const childSubscriptions =
+        await this.subscriptionService.findByUserId(childUserId);
+      const childActiveSubscription = childSubscriptions.find(
+        (sub) => sub.status === SubscriptionStatus.ACTIVE,
+      );
+
+      if (childActiveSubscription) {
+        // Update existing subscription to inherit parent's plan
+        await this.subscriptionService.update(
+          (childActiveSubscription as any)._id.toString(),
+          {
+            planName: parentSubscription.planName,
+            features: parentSubscription.features,
+            price: 0, // Child inherits for free
+            status: SubscriptionStatus.ACTIVE,
+            endDate: parentSubscription.endDate, // Inherit parent's end date
+            autoRenew: false, // Child doesn't auto-renew, depends on parent
+            cancelAtPeriodEnd: false,
+          },
+        );
+      } else {
+        // Create new subscription inheriting from parent
+        await this.subscriptionService.create({
+          userId: childUserId,
+          planName: parentSubscription.planName,
+          status: SubscriptionStatus.ACTIVE,
+          startDate: new Date(),
+          endDate: parentSubscription.endDate,
+          autoRenew: false,
+          price: 0, // Child inherits for free
+          currency: parentSubscription.currency,
+          billingCycle: parentSubscription.billingCycle,
+          features: parentSubscription.features,
+          lastPaymentDate: new Date(),
+          nextBillingDate: parentSubscription.nextBillingDate,
+          cancelAtPeriodEnd: false,
+        });
+      }
+
+      console.log(
+        `✅ Subscription inherited successfully for child user: ${childUserId}`,
+      );
+      console.log(`📋 Plan inherited: ${parentSubscription.planName}`);
+      return true;
+    } catch (error) {
+      console.error(
+        '❌ Error inheriting parent subscription for child:',
+        error,
+      );
+      // Don't throw error to avoid breaking the addChild process
+      return false;
+    }
   }
 }
