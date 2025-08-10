@@ -89,11 +89,12 @@ export class PaymentService {
           { headers },
         );
 
+        console.log(payload);
         const sessionId = response.data?.data?.sessionId;
 
         const paymentToSave = {
           ...createPaymentDto,
-          userId: new Types.ObjectId(createPaymentDto.userId),
+          userId: createPaymentDto.userId,
           sessionId: sessionId,
           transactionStatus: PaymentStatus.PENDING,
         };
@@ -109,6 +110,7 @@ export class PaymentService {
 
         return response.data;
       } catch (err) {
+        console.log(payload);
         lastError = err as AxiosError;
         const errorData =
           lastError?.response?.data || lastError?.message || 'Unknown error';
@@ -136,7 +138,6 @@ export class PaymentService {
     throw new Error(
       'Failed to create ArifPay payment session after 3 retries.',
     );
-
   }
 
   async updatePaymentStatus(responseStatusDto: ResponseStatusDto): Promise<{

@@ -95,6 +95,7 @@ export class CreatePaymentDto {
 
   @IsArray()
   @ValidateNested({ each: true })
+  @IsOptional()
   @Type(() => Beneficiary)
   beneficiaries: Beneficiary[];
 }
