@@ -51,30 +51,69 @@ export class PaymentService {
     const ERROR_URL = process.env.ERROR_URL;
     const NOTIFY_URL = process.env.NOTIFY_URL;
 
+    // --- basic guards (fail fast instead of retrying 4xx) ---
+    const httpsOnly = (u?: string) => !!u && /^https:\/\//i.test(u);
+    const methods = (createPaymentDto.paymentMethods || []).map((m) =>
+      m?.toUpperCase() === 'MPESSA' ? 'MPESA' : m,
+    );
+
+    const items = (createPaymentDto.items || []).map((i) => ({
+      ...i,
+      quantity: i.quantity ?? 1,
+      price: Number(i.price),
+    }));
+
+    const itemsSum = items.reduce(
+      (t, i) => t + Number(i.price) * Number(i.quantity ?? 1),
+      0,
+    );
+    const amount = Number(createPaymentDto.amount);
+
+    if (amount !== itemsSum) {
+      throw new Error(`Invalid amount: ${amount} != sum(items) ${itemsSum}`);
+    }
+
+    const finalCancel = createPaymentDto.cancelUrl || CANCEL_URL;
+    const finalSuccess = createPaymentDto.successUrl || SUCCESS_URL;
+    const finalError = createPaymentDto.errorUrl || ERROR_URL;
+    const finalNotify = createPaymentDto.notifyUrl || NOTIFY_URL;
+
+    if (
+      ![finalCancel, finalSuccess, finalError, finalNotify].every(httpsOnly)
+    ) {
+      throw new Error('All URLs (cancel/success/error/notify) must be HTTPS.');
+    }
+    if (!API_KEY) throw new Error('ARIFPAY_API_KEY is missing');
+    if (!BENEFICIARY_ACCOUNT)
+      throw new Error('ARIFPAY_BENEFICIARY_ACCOUNT is missing');
+    if (!BENEFICIARY_BANK)
+      throw new Error('ARIFPAY_BENEFICIARY_BANK is missing');
+
     const headers = {
       'Content-Type': 'application/json',
-      'x-arifpay-key': API_KEY,
+      'x-arifpay-key': API_KEY, // switch to Authorization: Bearer <key> if your account requires it
     };
 
     const payload = {
       nonce: createPaymentDto.nonce || uuidv4(),
-      cancelUrl: CANCEL_URL,
-      successUrl: SUCCESS_URL,
-      errorUrl: ERROR_URL,
-      notifyUrl: NOTIFY_URL,
+      cancelUrl: finalCancel,
+      successUrl: finalSuccess,
+      errorUrl: finalError,
+      notifyUrl: finalNotify,
       phone: createPaymentDto.phone?.toString(),
       email: createPaymentDto.email,
       expireDate: createPaymentDto.expireDate,
-      items: createPaymentDto.items,
-      paymentMethods: createPaymentDto.paymentMethods,
+      items,
+      paymentMethods: methods,
       beneficiaries: [
         {
           accountNumber: BENEFICIARY_ACCOUNT,
           bank: BENEFICIARY_BANK,
-          amount: createPaymentDto.amount,
+          amount, // must equal top-level amount
         },
       ],
       lang: createPaymentDto.lang || 'EN',
+      amount,
     };
 
     let lastError: AxiosError | null = null;
@@ -84,39 +123,71 @@ export class PaymentService {
         const response = await axios.post(
           `${BASE_URL}/api/checkout/session`,
           payload,
-          { headers },
+          {
+            headers,
+            timeout: 15000,
+            validateStatus: () => true, // we handle non-2xx
+          },
         );
 
-        const sessionId = response.data?.data?.sessionId;
+        if (response.status >= 200 && response.status < 300) {
+          const sessionId = response.data?.data?.sessionId;
 
-        const paymentToSave = {
-          ...createPaymentDto,
-          userId: createPaymentDto.userId, // Keep as string for better-auth compatibility
-          sessionId: sessionId,
-          transactionStatus: PaymentStatus.PENDING,
-        };
+          const paymentToSave = {
+            ...createPaymentDto,
+            userId: createPaymentDto.userId,
+            sessionId,
+            transactionStatus: PaymentStatus.PENDING,
+          };
 
-        await this.paymentRepository.create(paymentToSave);
-        paymentLogger.info({
-          event: 'Payment Session Created',
-          userId: createPaymentDto.userId,
-          sessionId,
-          attempt,
-          status: 'PENDING',
-        });
+          await this.paymentRepository.create(paymentToSave);
+          paymentLogger.info({
+            event: 'Payment Session Created',
+            userId: createPaymentDto.userId,
+            sessionId,
+            attempt,
+            status: 'PENDING',
+          });
 
-        return response.data as Record<string, unknown>;
-      } catch (err) {
-        lastError = err as AxiosError;
-        const errorData =
-          lastError?.response?.data || lastError?.message || 'Unknown error';
+          return response.data as Record<string, unknown>;
+        }
 
+        // Log exact gateway failure
         paymentLogger.warn({
           event: 'Payment Attempt Failed',
           userId: createPaymentDto.userId,
           attempt,
-          reason: errorData,
+          status: response.status,
+          body: response.data,
         });
+
+        // Do NOT retry client errors (4xx)
+        if (response.status >= 400 && response.status < 500) {
+          const err = new Error(
+            `ArifPay ${response.status}: ${JSON.stringify(response.data)}`,
+          );
+          (err as any).status = response.status;
+          throw err;
+        }
+
+        // simple backoff for retryable errors (5xx/network)
+        await new Promise((r) => setTimeout(r, attempt * 500));
+      } catch (err) {
+        lastError = err as AxiosError;
+        const status = lastError?.response?.status;
+
+        paymentLogger.warn({
+          event: 'Payment Attempt Error',
+          userId: createPaymentDto.userId,
+          attempt,
+          status,
+          reason:
+            lastError?.response?.data || lastError?.message || 'Unknown error',
+        });
+
+        // Break on non-retryable (4xx). Retry on 5xx or network.
+        if (status && status >= 400 && status < 500) break;
+        if (attempt < 3) await new Promise((r) => setTimeout(r, attempt * 500));
       }
     }
 
