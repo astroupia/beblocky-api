@@ -162,10 +162,6 @@ export class PaymentService {
           attempt,
           reason: errorData,
         });
-
-        // Break on non-retryable (4xx). Retry on 5xx or network.
-        if (status && status >= 400 && status < 500) break;
-        if (attempt < 3) await new Promise((r) => setTimeout(r, attempt * 500));
       }
     }
 
