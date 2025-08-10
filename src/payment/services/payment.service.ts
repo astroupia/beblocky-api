@@ -130,59 +130,37 @@ export class PaymentService {
           },
         );
 
-        if (response.status >= 200 && response.status < 300) {
-          const sessionId = response.data?.data?.sessionId;
+        console.log(payload);
+        const sessionId = response.data?.data?.sessionId;
 
-          const paymentToSave = {
-            ...createPaymentDto,
-            userId: createPaymentDto.userId,
-            sessionId,
-            transactionStatus: PaymentStatus.PENDING,
-          };
+        const paymentToSave = {
+          ...createPaymentDto,
+          userId: createPaymentDto.userId,
+          sessionId: sessionId,
+          transactionStatus: PaymentStatus.PENDING,
+        };
 
-          await this.paymentRepository.create(paymentToSave);
-          paymentLogger.info({
-            event: 'Payment Session Created',
-            userId: createPaymentDto.userId,
-            sessionId,
-            attempt,
-            status: 'PENDING',
-          });
+        await this.paymentRepository.create(paymentToSave);
+        paymentLogger.info({
+          event: 'Payment Session Created',
+          userId: createPaymentDto.userId,
+          sessionId,
+          attempt,
+          status: 'PENDING',
+        });
 
-          return response.data as Record<string, unknown>;
-        }
+        return response.data;
+      } catch (err) {
+        console.log(payload);
+        lastError = err as AxiosError;
+        const errorData =
+          lastError?.response?.data || lastError?.message || 'Unknown error';
 
-        // Log exact gateway failure
         paymentLogger.warn({
           event: 'Payment Attempt Failed',
           userId: createPaymentDto.userId,
           attempt,
-          status: response.status,
-          body: response.data,
-        });
-
-        // Do NOT retry client errors (4xx)
-        if (response.status >= 400 && response.status < 500) {
-          const err = new Error(
-            `ArifPay ${response.status}: ${JSON.stringify(response.data)}`,
-          );
-          (err as any).status = response.status;
-          throw err;
-        }
-
-        // simple backoff for retryable errors (5xx/network)
-        await new Promise((r) => setTimeout(r, attempt * 500));
-      } catch (err) {
-        lastError = err as AxiosError;
-        const status = lastError?.response?.status;
-
-        paymentLogger.warn({
-          event: 'Payment Attempt Error',
-          userId: createPaymentDto.userId,
-          attempt,
-          status,
-          reason:
-            lastError?.response?.data || lastError?.message || 'Unknown error',
+          reason: errorData,
         });
 
         // Break on non-retryable (4xx). Retry on 5xx or network.
