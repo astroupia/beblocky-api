@@ -17,14 +17,18 @@ export class StripeController {
 
     const formattedItems = Array.isArray(items) ? items : [items];
 
+    // Transform items to match Stripe service expectations
+    const stripeItems = formattedItems.map((item) => ({
+      price: item.price, // This should be a Stripe price ID
+      quantity: item.quantity || 1,
+    }));
+
     return this.stripeService.stripeCheckOut(
-      formattedItems, // Now guaranteed to be an array
-      'payment',
+      stripeItems,
+      'payment', // Default mode, will be auto-detected based on price types
       successUrl,
       cancelUrl,
       userId,
     );
   }
 }
-
-

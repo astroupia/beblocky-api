@@ -23,7 +23,9 @@
     "fix:teacher-index": "node scripts/fix-teacher-email-index.js",
     "test:user-listener": "node scripts/test-user-listener.js",
     "test:subscription-inheritance": "node scripts/test-subscription-inheritance.js",
-    "test:progress-course-integration": "node scripts/test-progress-course-integration.js"
+    "test:progress-course-integration": "node scripts/test-progress-course-integration.js",
+    "test:stripe-integration": "node scripts/test-stripe-integration.js",
+    "test:stripe-payloads": "node scripts/test-stripe-payloads.js"
   },
   "dependencies": {
     "@nestjs/axios": "^4.0.0",

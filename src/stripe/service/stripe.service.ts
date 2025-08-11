@@ -104,6 +104,64 @@ export class StripeService {
       throw new Error('Items must be an array');
     }
 
+    // Validate and determine the correct mode based on price types
+    let determinedMode = mode;
+    const priceIds = items.map((item) => item.price).filter(Boolean);
+
+    if (priceIds.length > 0) {
+      try {
+        // Check if any of the prices are recurring (subscription prices)
+        const pricePromises = priceIds.map((priceId) =>
+          stripe.prices.retrieve(priceId).catch(() => null),
+        );
+        const prices = await Promise.all(pricePromises);
+        const validPrices = prices.filter(Boolean);
+
+        if (validPrices.length > 0) {
+          const hasRecurringPrice = validPrices.some(
+            (price) => price && price.type === 'recurring',
+          );
+          const hasOneTimePrice = validPrices.some(
+            (price) => price && price.type === 'one_time',
+          );
+
+          if (hasRecurringPrice && hasOneTimePrice) {
+            throw new Error(
+              'Cannot mix recurring and one-time prices in the same checkout session',
+            );
+          }
+
+          if (hasRecurringPrice) {
+            determinedMode = 'subscription';
+            paymentLogger.info({
+              event: 'Mode Auto-Detected',
+              userId,
+              originalMode: mode,
+              determinedMode: 'subscription',
+              reason: 'Recurring prices detected',
+            });
+          } else if (hasOneTimePrice) {
+            determinedMode = 'payment';
+            paymentLogger.info({
+              event: 'Mode Auto-Detected',
+              userId,
+              originalMode: mode,
+              determinedMode: 'payment',
+              reason: 'One-time prices detected',
+            });
+          }
+        }
+      } catch (error) {
+        paymentLogger.warn({
+          event: 'Price Validation Failed',
+          userId,
+          error: error instanceof Error ? error.message : String(error),
+          fallbackMode: mode,
+        });
+        // Continue with the original mode if price validation fails
+      }
+    }
+
     const line_items = items.map((item) => ({
       price: item.price,
       quantity: item.quantity,
@@ -115,7 +173,7 @@ export class StripeService {
           () =>
             stripe.checkout.sessions.create({
               line_items,
-              mode,
+              mode: determinedMode,
               success_url,
               cancel_url,
             }),
