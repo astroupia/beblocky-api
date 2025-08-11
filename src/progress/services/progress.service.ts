@@ -72,7 +72,24 @@ export class ProgressService {
       );
     }
 
-    return this.progressRepository.create(progressData);
+    // Create the progress record
+    const progress = await this.progressRepository.create(progressData);
+
+    // Add student to course's students array
+    try {
+      await this.courseService.addStudent(courseId, studentId);
+      console.log(
+        `✅ Student ${studentId} added to course ${courseId} students array`,
+      );
+    } catch (error) {
+      console.error(
+        `❌ Failed to add student ${studentId} to course ${courseId}:`,
+        error,
+      );
+      // Don't throw error to avoid breaking progress creation
+    }
+
+    return progress;
   }
 
   /**

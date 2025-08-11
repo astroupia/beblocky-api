@@ -122,4 +122,43 @@ export class CourseRepository {
     }
     return course;
   }
+
+  /**
+   * Add a student to a course's students array
+   */
+  async addStudent(
+    courseId: string,
+    studentId: string,
+  ): Promise<CourseDocument> {
+    const course = await this.courseModel.findById(courseId).exec();
+    if (!course) {
+      throw new NotFoundException(`Course with ID ${courseId} not found`);
+    }
+
+    const studentObjectId = this.convertToObjectId(studentId);
+
+    // Check if student is already in the course
+    if (
+      course.students &&
+      course.students.some((id) => id.equals(studentObjectId))
+    ) {
+      // Student already exists, return the course as is
+      return course;
+    }
+
+    // Add student to the course
+    const updatedCourse = await this.courseModel
+      .findByIdAndUpdate(
+        courseId,
+        { $addToSet: { students: studentObjectId } },
+        { new: true },
+      )
+      .exec();
+
+    if (!updatedCourse) {
+      throw new NotFoundException(`Course with ID ${courseId} not found`);
+    }
+
+    return updatedCourse;
+  }
 }

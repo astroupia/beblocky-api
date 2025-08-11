@@ -129,4 +129,14 @@ export class CourseService {
       throw new NotFoundException(`Course with ID ${id} not found`);
     }
   }
+
+  /**
+   * Add a student to a course
+   */
+  async addStudent(
+    courseId: string,
+    studentId: string,
+  ): Promise<CourseDocument> {
+    return this.courseRepository.addStudent(courseId, studentId);
+  }
 }
