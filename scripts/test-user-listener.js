@@ -1,7 +1,8 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 
 async function testUserListener() {
-  const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/beblocky';
+  const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/beblocky';
 
   try {
     await mongoose.connect(uri);
