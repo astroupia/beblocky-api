@@ -51,7 +51,7 @@ export class Organization {
 // Mongoose schema class
 @Schema({ timestamps: true, collection: 'organizations' })
 export class OrganizationSchemaClass {
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, unique: true })
   userId: string; // String ID from better-auth
 
   @Prop({ required: true })

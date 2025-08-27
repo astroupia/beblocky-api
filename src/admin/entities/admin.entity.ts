@@ -16,7 +16,7 @@ export class Admin {
 // Mongoose schema class
 @Schema({ timestamps: true })
 export class AdminSchemaClass {
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, unique: true })
   userId: string; // String ID from better-auth
 
   @Prop({

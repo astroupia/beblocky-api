@@ -33,7 +33,7 @@ export interface Teacher {
 // Mongoose schema class
 @Schema({ timestamps: true, collection: 'teachers' })
 export class TeacherSchemaClass implements Teacher {
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, unique: true })
   userId: string; // String ID from better-auth
 
   @Prop({

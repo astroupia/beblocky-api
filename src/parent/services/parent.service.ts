@@ -90,6 +90,18 @@ export class ParentService {
     createParentFromUserDto: CreateParentFromUserDto,
   ): Promise<ParentDocument> {
     try {
+      // Check if parent already exists for this user
+      const existingParent = await this.parentRepository.findByUserId(
+        createParentFromUserDto.userId,
+      );
+
+      if (existingParent) {
+        console.log(
+          `Parent already exists for user: ${createParentFromUserDto.userId}`,
+        );
+        return existingParent;
+      }
+
       // Get user information to include email
       const user = await this.userService.findOne(
         createParentFromUserDto.userId,

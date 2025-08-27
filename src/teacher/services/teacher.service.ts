@@ -100,6 +100,18 @@ export class TeacherService {
     createTeacherFromUserDto: CreateTeacherFromUserDto,
   ): Promise<TeacherDocument> {
     try {
+      // Check if teacher already exists for this user
+      const existingTeacher = await this.teacherRepository.findByUserId(
+        createTeacherFromUserDto.userId,
+      );
+
+      if (existingTeacher) {
+        console.log(
+          `Teacher already exists for user: ${createTeacherFromUserDto.userId}`,
+        );
+        return existingTeacher;
+      }
+
       // Get user information to include email
       const user = await this.userService.findOne(
         createTeacherFromUserDto.userId,

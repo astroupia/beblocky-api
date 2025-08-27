@@ -100,4 +100,7 @@ export class StudentSchemaClass implements Student {
 
 export const StudentSchema = SchemaFactory.createForClass(StudentSchemaClass);
 
+// Add unique index on userId to prevent duplicates
+StudentSchema.index({ userId: 1 }, { unique: true });
+
 export type StudentDocument = StudentSchemaClass & Document;

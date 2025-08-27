@@ -26,7 +26,7 @@ export enum RelationshipType {
 // Mongoose schema class
 @Schema({ timestamps: true, collection: 'parents' })
 export class ParentSchemaClass {
-  @Prop({ type: String, required: true })
+  @Prop({ type: String, required: true, unique: true })
   userId: string; // String ID from better-auth
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Student' }] })
@@ -64,4 +64,8 @@ export class ParentSchemaClass {
 }
 
 export const ParentSchema = SchemaFactory.createForClass(ParentSchemaClass);
+
+// Add unique index on userId to prevent duplicates
+ParentSchema.index({ userId: 1 }, { unique: true });
+
 export type ParentDocument = ParentSchemaClass & Document;
