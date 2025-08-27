@@ -26,6 +26,8 @@
     "test:api-user": "node scripts/test-api-user-creation.js",
     "check:mongodb": "node scripts/check-mongodb-setup.js",
     "test:atlas": "node scripts/test-atlas-connection.js",
+    "test:listener-status": "node scripts/test-listener-status.js",
+    "cleanup:duplicates": "node scripts/cleanup-duplicates.js",
     "test:subscription-inheritance": "node scripts/test-subscription-inheritance.js",
     "test:progress-course-integration": "node scripts/test-progress-course-integration.js",
     "test:stripe-integration": "node scripts/test-stripe-integration.js",

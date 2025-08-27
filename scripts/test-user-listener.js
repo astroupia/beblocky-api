@@ -16,10 +16,10 @@ async function testUserListener() {
     const adminsCollection = db.collection('admins');
     const organizationsCollection = db.collection('organizations');
 
-    // Test user data
+    // Test user data with Better-Auth format user IDs (base64-encoded)
     const testUsers = [
       {
-        _id: 'test-teacher-' + Date.now(),
+        _id: Buffer.from('test-teacher-' + Date.now()).toString('base64'),
         email: 'test-teacher@beblocky.com',
         name: 'Test Teacher',
         emailVerified: true,
@@ -28,7 +28,7 @@ async function testUserListener() {
         updatedAt: new Date(),
       },
       {
-        _id: 'test-student-' + Date.now(),
+        _id: Buffer.from('test-student-' + Date.now()).toString('base64'),
         email: 'test-student@beblocky.com',
         name: 'Test Student',
         emailVerified: true,
@@ -37,7 +37,7 @@ async function testUserListener() {
         updatedAt: new Date(),
       },
       {
-        _id: 'test-parent-' + Date.now(),
+        _id: Buffer.from('test-parent-' + Date.now()).toString('base64'),
         email: 'test-parent@beblocky.com',
         name: 'Test Parent',
         emailVerified: true,
