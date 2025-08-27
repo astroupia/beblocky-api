@@ -157,6 +157,11 @@ export class StudentRepository {
     return student;
   }
 
+  async findByUserIdOrNull(userId: string): Promise<StudentDocument | null> {
+    const student = await this.studentModel.findOne({ userId }).exec();
+    return student;
+  }
+
   async findByEmail(email: string): Promise<StudentDocument> {
     const student = await this.studentModel
       .aggregate([

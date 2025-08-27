@@ -68,6 +68,11 @@ export class ParentRepository {
     return parent;
   }
 
+  async findByUserIdOrNull(userId: string): Promise<ParentDocument | null> {
+    const parent = await this.parentModel.findOne({ userId }).exec();
+    return parent;
+  }
+
   async addChild(parentId: string, childId: string): Promise<ParentDocument> {
     const parent = await this.parentModel
       .findByIdAndUpdate(

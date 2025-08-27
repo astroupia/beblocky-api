@@ -107,6 +107,11 @@ export class TeacherRepository {
     return teacher;
   }
 
+  async findByUserIdOrNull(userId: string): Promise<TeacherDocument | null> {
+    const teacher = await this.teacherModel.findOne({ userId }).exec();
+    return teacher;
+  }
+
   async addCourse(
     teacherId: string,
     courseId: string,

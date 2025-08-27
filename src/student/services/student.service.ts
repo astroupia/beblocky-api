@@ -144,7 +144,7 @@ export class StudentService {
   ): Promise<StudentDocument> {
     try {
       // Check if student already exists for this user
-      const existingStudent = await this.studentRepository.findByUserId(
+      const existingStudent = await this.studentRepository.findByUserIdOrNull(
         createStudentFromUserDto.userId,
       );
 

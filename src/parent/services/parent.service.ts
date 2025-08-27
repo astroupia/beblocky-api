@@ -91,7 +91,7 @@ export class ParentService {
   ): Promise<ParentDocument> {
     try {
       // Check if parent already exists for this user
-      const existingParent = await this.parentRepository.findByUserId(
+      const existingParent = await this.parentRepository.findByUserIdOrNull(
         createParentFromUserDto.userId,
       );
 

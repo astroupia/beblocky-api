@@ -101,7 +101,7 @@ export class TeacherService {
   ): Promise<TeacherDocument> {
     try {
       // Check if teacher already exists for this user
-      const existingTeacher = await this.teacherRepository.findByUserId(
+      const existingTeacher = await this.teacherRepository.findByUserIdOrNull(
         createTeacherFromUserDto.userId,
       );
 
