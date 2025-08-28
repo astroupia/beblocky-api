@@ -25,7 +25,7 @@ function mapRatingToResponse(
   return {
     id: (rating._id as any).toString(),
     courseId: rating.courseId.toString(),
-    userId: rating.userId.toString(),
+    userId: rating.userId ? rating.userId.toString() : '', // Ensure userId is always a string
     rating: rating.rating,
     review: rating.review,
     createdAt: (rating as any).createdAt,

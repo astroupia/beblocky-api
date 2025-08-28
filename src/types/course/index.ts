@@ -61,7 +61,7 @@ export interface ICreateCourseWithContentDto {
 
 export interface ICourseRating {
   courseId: Types.ObjectId;
-  userId: string; // String ID from better-auth
+  userId: string | null; // String ID from better-auth, can be null
   rating: number; // Use number instead of RatingValue enum
   review?: string;
   createdAt: Date;
@@ -78,7 +78,7 @@ export type IUpdateCourseRatingDto = Partial<ICreateCourseRatingDto>;
 export interface ICourseRatingResponse {
   id: string;
   courseId: string;
-  userId: string;
+  userId: string | null; // Can be null for invalid records
   rating: number; // Use number instead of RatingValue enum
   review?: string;
   createdAt: Date;
