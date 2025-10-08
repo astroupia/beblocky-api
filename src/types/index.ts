@@ -10,3 +10,7 @@ export * from './admin';
 export * from './certificate';
 export * from './class';
 export * from './progress';
+export * from './parent';
+export * from './payment';
+export * from './ai-conversation';
+export * from './code-analysis';

@@ -8,7 +8,7 @@ export enum OrganizationType {
   OTHER = 'other',
 }
 
-export interface IAddress {
+export interface IOrganizationAddress {
   street: string;
   city: string;
   state: string;
@@ -43,7 +43,7 @@ export interface IOrganization {
   userId: string; // String ID from better-auth
   name: string;
   type: OrganizationType;
-  address: IAddress;
+  address: IOrganizationAddress;
   contactInfo: IContactInfo;
   teachers: Types.ObjectId[];
   students: Types.ObjectId[];
@@ -61,7 +61,7 @@ export interface IOrganization {
 
 export interface ICreateOrganizationDto extends ICreateUserDto {
   type: OrganizationType;
-  address: IAddress;
+  address: IOrganizationAddress;
   contactInfo?: IContactInfo;
   features?: IFeatures;
   settings?: ISettings;
