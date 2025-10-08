@@ -21,6 +21,8 @@ import { CloudinaryController } from './cloudinary/controllers/cloudinary.contro
 import { CloudinaryService } from './cloudinary/services/cloudinary.service';
 import { StripeModule } from './stripe/stripe.module';
 import { ListenersModule } from './infrastructure/database/database.module';
+import { AiConversationModule } from './ai-conversation/ai-conversation.module';
+import { CodeAnalysisModule } from './code-analysis/code-analysis.module';
 
 @Module({
   imports: [
@@ -46,7 +48,6 @@ import { ListenersModule } from './infrastructure/database/database.module';
     UserModule,
     StudentModule,
     OrganizationModule,
-    StudentModule,
     SubscriptionModule,
     LessonModule,
     SlideModule,
@@ -60,6 +61,8 @@ import { ListenersModule } from './infrastructure/database/database.module';
     ClassModule,
     CertificateModule,
     ListenersModule,
+    AiConversationModule,
+    CodeAnalysisModule,
   ],
   controllers: [CloudinaryController],
   providers: [CloudinaryService],
