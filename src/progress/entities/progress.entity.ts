@@ -61,14 +61,14 @@ export class ProgressSchemaClass {
   })
   timeSpent: { [weekKey: string]: number };
 
-  @Prop({ default: 0, min: 0 })
-  coinsEarned: number;
+  @Prop({ default: 0, min: 0, required: false })
+  coinsEarned?: number;
 
   @Prop({
     type: Map,
     of: {
       language: { type: String, required: true },
-      code: { type: String, required: true },
+      code: { type: String, required: false },
       timestamp: { type: Date, default: Date.now },
     },
     default: {},

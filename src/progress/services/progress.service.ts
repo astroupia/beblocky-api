@@ -346,7 +346,7 @@ export class ProgressService {
     const weeklyBonus = weeklyTime >= 300 ? 25 : 0; // 300 minutes = 5 hours
 
     const totalCoins = baseCoins + streakBonus + completionBonus + weeklyBonus;
-    const coinsToAward = totalCoins - progress.coinsEarned;
+    const coinsToAward = totalCoins - (progress.coinsEarned || 0);
 
     if (coinsToAward > 0) {
       await this.progressRepository.findByIdAndUpdate(progressId, {

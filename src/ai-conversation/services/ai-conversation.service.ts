@@ -41,7 +41,7 @@ export class AiConversationService {
   async create(
     createDto: CreateAiConversationDto,
   ): Promise<AiConversationDocument> {
-    const { courseId, studentId, title, initialMessage, lessonId, slideId } =
+    const { courseId, studentId, initialMessage, lessonId, slideId } =
       createDto;
 
     // Verify course exists
@@ -56,11 +56,23 @@ export class AiConversationService {
     // Create system message with course context
     const systemMessage = this.buildSystemMessage(course, courseContext);
 
-    // Initialize conversation
+    // Generate the title based on initialMessage and course context if available
+    let generatedTitle: string;
+    if (initialMessage && initialMessage.trim().length > 0) {
+      // Use the first sentence or 10 words from initialMessage as the base
+      const preview =
+        initialMessage.split(/[.?!]/)[0] ||
+        initialMessage.split(/\s+/).slice(0, 10).join(' ');
+      generatedTitle = `Q: ${preview.length > 54 ? preview.slice(0, 54) + '…' : preview}`;
+    } else {
+      // Default to course title if no message given
+      generatedTitle = `Course Conversation: ${course.courseTitle}`;
+    }
+
     const conversation = await this.aiConversationRepository.create({
       courseId: createObjectId(courseId, 'courseId'),
       studentId: createObjectId(studentId, 'studentId'),
-      title: title || `Course: ${course.courseTitle}`,
+      title: generatedTitle,
       messages: [
         {
           role: 'system',
@@ -89,7 +101,7 @@ export class AiConversationService {
       throw new Error('Failed to create conversation');
     }
 
-    return conversation as AiConversationDocument;
+    return conversation;
   }
 
   /**
@@ -146,7 +158,7 @@ export class AiConversationService {
     if (!savedConversation) {
       throw new Error('Failed to save updated conversation');
     }
-    return savedConversation as AiConversationDocument;
+    return savedConversation;
   }
 
   /**
@@ -157,7 +169,7 @@ export class AiConversationService {
     if (!conversation) {
       throw new NotFoundException(`Conversation with ID ${id} not found`);
     }
-    return conversation as AiConversationDocument;
+    return conversation;
   }
 
   /**
@@ -169,7 +181,7 @@ export class AiConversationService {
     if (!conversations) {
       return [];
     }
-    return conversations as AiConversationDocument[];
+    return conversations;
   }
 
   /**
@@ -180,7 +192,7 @@ export class AiConversationService {
     if (!conversations) {
       return [];
     }
-    return conversations as AiConversationDocument[];
+    return conversations;
   }
 
   /**
@@ -192,7 +204,7 @@ export class AiConversationService {
     if (!conversations) {
       return [];
     }
-    return conversations as AiConversationDocument[];
+    return conversations;
   }
 
   /**
@@ -210,7 +222,7 @@ export class AiConversationService {
     if (!conversations) {
       return [];
     }
-    return conversations as AiConversationDocument[];
+    return conversations;
   }
 
   /**
@@ -241,16 +253,36 @@ export class AiConversationService {
 
     // Get lessons if course has them
     if (course.lessons && course.lessons.length > 0) {
-      for (const lessonId of course.lessons) {
-        const lesson = await this.lessonService.findById(lessonId.toString());
-        if (lesson) {
+      for (const lesson of course.lessons) {
+        // Check if lesson is populated (has _id property) or is just an ObjectId
+        if (
+          lesson &&
+          typeof lesson === 'object' &&
+          lesson._id &&
+          'title' in lesson
+        ) {
+          // Lesson is already populated, use it directly
           context.lessons.push({
             id: lesson._id,
-            title: lesson.title,
-            description: lesson.description,
-            difficulty: lesson.difficulty,
-            duration: lesson.duration,
+            title: (lesson as any).title,
+            description: (lesson as any).description,
+            difficulty: (lesson as any).difficulty,
+            duration: (lesson as any).duration,
           });
+        } else {
+          // Lesson is just an ObjectId, fetch it
+          const lessonDoc = await this.lessonService.findById(
+            lesson.toString(),
+          );
+          if (lessonDoc) {
+            context.lessons.push({
+              id: lessonDoc._id,
+              title: lessonDoc.title,
+              description: lessonDoc.description,
+              difficulty: lessonDoc.difficulty,
+              duration: lessonDoc.duration,
+            });
+          }
         }
       }
     }
@@ -259,15 +291,32 @@ export class AiConversationService {
     if (lessonId) {
       const lesson = await this.lessonService.findById(lessonId);
       if (lesson && lesson.slides) {
-        for (const slideId of lesson.slides) {
-          const slide = await this.slideService.findById(slideId.toString());
-          if (slide) {
+        for (const slide of lesson.slides) {
+          // Check if slide is populated (has _id property) or is just an ObjectId
+          if (
+            slide &&
+            typeof slide === 'object' &&
+            slide._id &&
+            'title' in slide
+          ) {
+            // Slide is already populated, use it directly
             context.slides.push({
               id: slide._id,
-              title: slide.title,
-              content: slide.content,
-              order: slide.order,
+              title: (slide as any).title,
+              content: (slide as any).content,
+              order: (slide as any).order,
             });
+          } else {
+            // Slide is just an ObjectId, fetch it
+            const slideDoc = await this.slideService.findById(slide.toString());
+            if (slideDoc) {
+              context.slides.push({
+                id: slideDoc._id,
+                title: slideDoc.title,
+                content: slideDoc.content,
+                order: slideDoc.order,
+              });
+            }
           }
         }
       }
